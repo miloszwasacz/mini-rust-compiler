@@ -1,0 +1,122 @@
+Crate -> Item*
+
+Item -> VisItem
+
+VisItem -> Function
+         | StaticItem
+
+Function -> "fn" ident "(" FunctionParameters? ")" FunctionReturnType? BlockExpression
+
+FunctionParameters -> FunctionParam ("," FunctionParam)* ","?
+
+/* TODO Change ident to PatternNoTopAlt */
+FunctionParam -> ident ":" Type
+
+FunctionReturnType -> "->" Type
+
+StaticItem -> "static" "mut"? ident ":" Type ("=" Expression)? ";"
+
+Statement -> ";"
+           | LetStatement
+           | ExpressionStatement
+
+/* TODO Introduce type inference */
+/* TODO Change ident to PatternNoTopAlt */
+LetStatement -> "let" ident ":" Type ("=" Expression)? ";"
+
+ExpressionStatement -> ExpressionWithoutBlock ";"
+                     | ExpressionWithBlock ";"?
+
+Expression -> ExpressionWithoutBlock
+            | ExpressionWithBlock
+
+/* TODO Add ContinueExpression & BreakExpression */
+/* TODO Add RangeExpression */
+ExpressionWithoutBlock -> LiteralExpression
+                        | PathExpression
+                        | OperatorExpression
+                        | GroupedExpression
+                        | CallExpression
+                        | ReturnExpression
+                        | UnderscoreExpression
+
+/* TODO Add pattern matching (IfLetExpression, MatchExpression) */
+ExpressionWithBlock -> BlockExpression
+                     | LoopExpression
+                     | IfExpression
+
+LiteralExpression -> integer_literal
+                   | float_literal
+                   | boolean_literal
+
+PathExpression -> ident
+
+BlockExpression -> "{" Statements? "}"
+
+Statements -> Statement+
+            | Statement+ ExpressionWithoutBlock
+            | ExpressionWithoutBlock
+
+/* TODO Add CompoundAssignmentExpression */
+OperatorExpression -> NegationExpression
+                    | ArithmeticOrLogicalExpression
+                    | ComparisonExpression
+                    | LazyBooleanExpression
+                    | TypeCastExpression
+                    | AssignmentExpression
+
+NegationExpression -> "-" Expression
+                    | "!" Expression
+
+/* TODO Add << and >> */
+ArithmeticOrLogicalExpression -> Expression "+" Expression
+                               | Expression "-" Expression
+                               | Expression "*" Expression
+                               | Expression "/" Expression
+                               | Expression "%" Expression
+                               | Expression "&" Expression
+                               | Expression "|" Expression
+                               | Expression "^" Expression
+
+ComparisonExpression -> Expression "==" Expression
+                        | Expression "!=" Expression
+                        | Expression ">" Expression
+                        | Expression "<" Expression
+                        | Expression ">=" Expression
+                        | Expression "<=" Expression
+
+LazyBooleanExpression -> Expression "&&" Expression
+                       | Expression "||" Expression
+
+TypeCastExpression -> Expression "as" Type
+
+/* TODO Change LHS to Expression */
+AssignmentExpression -> PathExpression "=" Expression
+
+GroupedExpression -> "(" Expression ")"
+
+/* TODO Change PathExpression to Expression */
+CallExpression -> PathExpression "(" CallParams? ")"
+
+CallParams -> Expression ("," Expression)* ","?
+
+/* TODO Add LoopLabel */
+/* TODO Add PredicatePatternLoopExpression, IteratorLoopExpression, LabelBlockExpression */
+LoopExpression -> InfiniteLoopExpression
+                | PredicateLoopExpression
+
+InfiniteLoopExpression -> "loop" BlockExpression
+
+PredicateLoopExpression -> "while" Expression BlockExpression
+
+/* TODO Add RangeExpression */
+
+IfExpression -> "if" Expression BlockExpression ("else" (BlockExpression | IfExpression))?
+
+ReturnExpression -> "return" Expression?
+
+UnderscoreExpression -> "_"
+
+Type -> "i32"
+      | "f64"
+      | "bool"
