@@ -1,0 +1,131 @@
+Crate -> Items'
+
+Items' -> Item Items'
+        | ε
+Item -> VisItem
+
+VisItem -> Function
+         | StaticItem
+
+Function -> "fn" ident "(" FunctionParameters ")" FunctionReturnType BlockExpression
+
+FunctionParameters -> FunctionParam FunctionParameters'
+                    | ε
+FunctionParameters' -> "," FunctionParameters
+                     | ε
+
+FunctionParam -> ident ":" Type
+
+FunctionReturnType -> "->" Type
+                    | ε
+
+Mut' -> "mut"
+      | ε
+ItemAssignment' -> "=" Expression
+                 | ε
+
+StaticItem -> "static" Mut' ident ":" Type ItemAssignment' ";"
+
+Statement -> ";"
+           | LetStatement
+           | ExpressionStatement
+
+LetStatement -> "let" Mut' ident ":" Type ItemAssignment' ";"
+
+ExpressionStatement -> ExpressionWithoutBlock ";"
+                     | ExpressionWithBlock ExprBlockTail'
+ExpressionStatementTail' -> ";"
+                          | ε
+
+ExpressionWithoutBlock -> LiteralExpression
+                        | PathExpression
+                        | OperatorExpression
+                        | GroupedExpression
+                        | CallExpression
+                        | ReturnExpression
+                        | UnderscoreExpression
+
+ExpressionWithBlock -> BlockExpression
+                        | LoopExpression
+                        | IfExpression
+
+LiteralExpression -> integer_literal
+                   | float_literal
+                   | boolean_literal
+
+PathExpression -> ident
+
+BlockExpression -> "{" BlockExpressionBody' "}"
+BlockExpressionBody' -> Statements
+                      | ε
+
+Statements -> Statement Statements'
+            | ExpressionWithoutBlock
+Statements' -> Statement Statements'
+             | ExpressionWithoutBlock
+             | ε
+
+/* Shown in order of precedence (highest to lowest) */
+OperatorExpression -> NegationExpression
+                    | TypeCastExpression
+                    | ArithmeticOrLogicalExpression
+                    | ComparisonExpression
+                    | LazyBooleanExpression
+                    | AssignmentExpression
+
+NegationExpression -> "-" Expression
+                    | "!" Expression
+
+/* Shown in order of precedence (highest to lowest, same in one line) */
+ArithmeticOrLogicalExpression -> Expression "*" Expression | Expression "/" Expression | Expression "%" Expression
+                               | Expression "+" Expression | Expression "-" Expression
+                               | Expression "&" Expression
+                               | Expression "^" Expression
+                               | Expression "|" Expression
+
+ComparisonExpression -> Expression "==" Expression
+                      | Expression "!=" Expression
+                      | Expression ">" Expression
+                      | Expression "<" Expression
+                      | Expression ">=" Expression
+                      | Expression "<=" Expression
+
+/* Shown in order of precedence (highest to lowest) */
+LazyBooleanExpression -> Expression "&&" Expression
+                       | Expression "||" Expression
+
+TypeCastExpression -> Expression "as" Type
+
+AssignmentExpression -> PathExpression "=" Expression
+
+GroupedExpression -> "(" Expression ")"
+
+CallExpression -> PathExpression "(" CallParams ")"
+
+CallParams -> CallParam CallParams'
+            | ε
+CallParams' -> "," CallParams
+             | ε
+
+LoopExpression -> InfiniteLoopExpression
+                | PredicateLoopExpression
+
+InfiniteLoopExpression -> "loop" BlockExpression
+
+PredicateLoopExpression -> "while" Expression BlockExpression
+
+IfExpression -> "if" Expression BlockExpression IfExpressionTail'
+IfExpressionTail' -> "else" ElseExpression'
+                   | ε
+ElseExpression' -> BlockExpression
+                 | IfExpression
+
+ReturnExpression -> "return" ReturnExpressionTail'
+ReturnExpressionTail' -> Expression
+                       | ε
+
+UnderscoreExpression -> "_"
+
+Type -> "i32"
+      | "f64"
+      | "bool"

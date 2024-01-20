@@ -21,8 +21,8 @@ Statement -> ";"
            | ExpressionStatement
 
 /* TODO Introduce type inference */
-/* TODO Change ident to PatternNoTopAlt */
-LetStatement -> "let" ident ":" Type ("=" Expression)? ";"
+/* TODO Change `"mut"? ident` to PatternNoTopAlt */
+LetStatement -> "let" "mut"? ident ":" Type ("=" Expression)? ";"
 
 ExpressionStatement -> ExpressionWithoutBlock ";"
                      | ExpressionWithBlock ";"?
