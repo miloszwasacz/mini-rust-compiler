@@ -76,12 +76,25 @@ OperatorExpression -> NegationExpression
 NegationExpression -> "-" Expression
                     | "!" Expression
 
-/* Shown in order of precedence (highest to lowest, same in one line) */
-ArithmeticOrLogicalExpression -> Expression "*" Expression | Expression "/" Expression | Expression "%" Expression
-                               | Expression "+" Expression | Expression "-" Expression
-                               | Expression "&" Expression
-                               | Expression "^" Expression
-                               | Expression "|" Expression
+ArithmeticOrLogicalExpression -> ArithLogExpr5
+
+ArithLogExpr5 -> ArithLogExpr5 "|" ArithLogExpr4
+               | ArithLogExpr4
+
+ArithLogExpr4 -> ArithLogExpr4 "^" ArithLogExpr3
+               | ArithLogExpr3
+
+ArithLogExpr3 -> ArithLogExpr3 "&" ArithLogExpr2
+               | ArithLogExpr2
+
+ArithLogExpr2 -> ArithLogExpr2 "+" ArithLogExpr1
+               | ArithLogExpr2 "-" ArithLogExpr1
+               | ArithLogExpr1
+
+ArithLogExpr1 -> ArithLogExpr1 "*" Expression
+               | ArithLogExpr1 "/" Expression
+               | ArithLogExpr1 "%" Expression
+               | Expression
 
 ComparisonExpression -> Expression "==" Expression
                       | Expression "!=" Expression
@@ -90,9 +103,13 @@ ComparisonExpression -> Expression "==" Expression
                       | Expression ">=" Expression
                       | Expression "<=" Expression
 
-/* Shown in order of precedence (highest to lowest) */
-LazyBooleanExpression -> Expression "&&" Expression
-                       | Expression "||" Expression
+LazyBooleanExpression -> LazyBool2
+
+LazyBool2 -> LazyBool2 "||" LazyBool1
+           | LazyBool1
+
+LazyBool1 -> LazyBool1 "&&" Expression
+           | Expression
 
 TypeCastExpression -> Expression "as" Type
 
