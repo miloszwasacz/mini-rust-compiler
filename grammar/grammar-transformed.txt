@@ -2,6 +2,7 @@ Crate -> Items'
 
 Items' -> Item Items'
         | ε
+
 Item -> VisItem
 
 VisItem -> Function
@@ -21,29 +22,25 @@ FunctionReturnType -> "->" Type
 
 Mut' -> "mut"
       | ε
+
 ItemAssignment' -> "=" Expression
                  | ε
 
 StaticItem -> "static" Mut' ident ":" Type ItemAssignment' ";"
 
-Statement -> ";"
-           | LetStatement
-           | ExpressionStatement
-
 LetStatement -> "let" Mut' ident ":" Type ItemAssignment' ";"
 
-ExpressionStatement -> ExpressionWithoutBlock ";"
-                     | ExpressionWithBlock ExprBlockTail'
-ExpressionStatementTail' -> ";"
-                          | ε
+ExpressionStatement -> ExpressionWithoutBlock
 
-ExpressionWithoutBlock -> LiteralExpression
-                        | PathExpression
-                        | OperatorExpression
-                        | GroupedExpression
-                        | CallExpression
+Expression -> ExpressionWithoutBlock
+
+ExpressionWithoutBlock -> OperatorExpression
                         | ReturnExpression
-                        | UnderscoreExpression
+
+ExpressionWithoutBlock' -> LiteralExpression
+                         | Ident'
+                         | GroupedExpression
+                         | UnderscoreExpression
 
 ExpressionWithBlock -> BlockExpression
                         | LoopExpression
@@ -53,73 +50,72 @@ LiteralExpression -> integer_literal
                    | float_literal
                    | boolean_literal
 
+Ident' -> PathExpression CallExpression'
+
 PathExpression -> ident
 
-BlockExpression -> "{" BlockExpressionBody' "}"
-BlockExpressionBody' -> Statements
-                      | ε
+BlockExpression -> "{" Statements "}"
 
-Statements -> Statement Statements'
-            | ExpressionWithoutBlock
-Statements' -> Statement Statements'
-             | ExpressionWithoutBlock
-             | ε
+Statements -> LetStatement Statements
+            | ExpressionStatement StatementsTail
+            | ε
 
-/* Shown in order of precedence (highest to lowest) */
-OperatorExpression -> NegationExpression
-                    | TypeCastExpression
-                    | ArithmeticOrLogicalExpression
-                    | ComparisonExpression
-                    | LazyBooleanExpression
-                    | AssignmentExpression
+StatementsTail -> ";" Statements
+                 | ε
 
-NegationExpression -> "-" Expression
-                    | "!" Expression
+OperatorExpression -> Expr1
 
-ArithmeticOrLogicalExpression -> ArithLogExpr5
+Expr1 -> Expr2 Expr1'
+Expr1' -> "=" Expr2 Expr1'
+        | ε
+Expr2 -> Expr3 Expr2'
+Expr2' -> "||" Expr3 Expr2'
+        | ε
+Expr3 -> Expr4 Expr3'
+Expr3' -> "&&" Expr4 Expr3'
+        | ε
+Expr4 -> Expr5 Expr4'
+Expr4' -> "==" Expr5
+        | "!=" Expr5
+        | ">" Expr5
+        | "<" Expr5
+        | ">=" Expr5
+        | "<=" Expr5
+        | ε
+Expr5 -> Expr6 Expr5'
+Expr5' -> "|" Expr6 Expr5'
+        | ε
+Expr6 -> Expr7 Expr6'
+Expr6' -> "^" Expr7 Expr6'
+        | ε
+Expr7 -> Expr8 Expr7'
+Expr7' -> "&" Expr8 Expr7'
+        | ε
+Expr8 -> Expr9 Expr8'
+Expr8' -> "+" Expr9 Expr8'
+        | "-" Expr9 Expr8'
+        | ε
+Expr9 -> Expr10 Expr9'
+Expr9' -> "*" Expr10 Expr9'
+        | "/" Expr10 Expr9'
+        | "%" Expr10 Expr9'
+        | ε
+Expr10 -> Expr11 Expr10'
+Expr10' -> "as" Type Expr10'
+        | ε
+Expr11 -> NegationExpression
+        | ExpressionWithoutBlock'
+        | ExpressionWithBlock
 
-ArithLogExpr5 -> ArithLogExpr5 "|" ArithLogExpr4
-               | ArithLogExpr4
-
-ArithLogExpr4 -> ArithLogExpr4 "^" ArithLogExpr3
-               | ArithLogExpr3
-
-ArithLogExpr3 -> ArithLogExpr3 "&" ArithLogExpr2
-               | ArithLogExpr2
-
-ArithLogExpr2 -> ArithLogExpr2 "+" ArithLogExpr1
-               | ArithLogExpr2 "-" ArithLogExpr1
-               | ArithLogExpr1
-
-ArithLogExpr1 -> ArithLogExpr1 "*" Expression
-               | ArithLogExpr1 "/" Expression
-               | ArithLogExpr1 "%" Expression
-               | Expression
-
-ComparisonExpression -> Expression "==" Expression
-                      | Expression "!=" Expression
-                      | Expression ">" Expression
-                      | Expression "<" Expression
-                      | Expression ">=" Expression
-                      | Expression "<=" Expression
-
-LazyBooleanExpression -> LazyBool2
-
-LazyBool2 -> LazyBool2 "||" LazyBool1
-           | LazyBool1
-
-LazyBool1 -> LazyBool1 "&&" Expression
-           | Expression
-
-TypeCastExpression -> Expression "as" Type
-
-AssignmentExpression -> PathExpression "=" Expression
+NegationExpression -> "-" Expr11
+                    | "!" Expr11
 
 GroupedExpression -> "(" Expression ")"
 
-CallExpression -> PathExpression "(" CallParams ")"
+CallExpression' -> "(" CallParams ")"
+                 | ε
 
-CallParams -> CallParam CallParams'
+CallParams -> Expression CallParams'
             | ε
 CallParams' -> "," CallParams
              | ε
@@ -129,9 +125,9 @@ LoopExpression -> InfiniteLoopExpression
 
 InfiniteLoopExpression -> "loop" BlockExpression
 
-PredicateLoopExpression -> "while" Expression BlockExpression
+PredicateLoopExpression -> "while" OperatorExpression BlockExpression
 
-IfExpression -> "if" Expression BlockExpression IfExpressionTail'
+IfExpression -> "if" OperatorExpression BlockExpression IfExpressionTail'
 IfExpressionTail' -> "else" ElseExpression'
                    | ε
 ElseExpression' -> BlockExpression
