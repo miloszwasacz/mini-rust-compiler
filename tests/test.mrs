@@ -1,0 +1,14 @@
+extern "C" {
+    fn print(n: i32);
+}
+
+fn main() {
+    let mut n: i32 = 0;
+    while n < 10 {
+        n = n + 1;
+        if n % 2 == 0 {
+            let ń = n;
+            unsafe { print(ń) };
+        }
+    }
+}

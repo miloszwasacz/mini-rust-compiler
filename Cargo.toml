@@ -3,6 +3,11 @@ name = "mini-rust-compiler"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "mini_rust_compiler_components"
+path = "src/lib.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+unicode-ident = "1.0"
