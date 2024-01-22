@@ -11,3 +11,4 @@ path = "src/lib.rs"
 
 [dependencies]
 unicode-ident = "1.0"
+debug_tree = "0.4"
