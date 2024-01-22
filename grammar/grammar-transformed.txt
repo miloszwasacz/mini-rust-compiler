@@ -7,6 +7,7 @@ Item -> VisItem
 
 VisItem -> Function
          | StaticItem
+         | ExternBlock
 
 Function -> "fn" ident "(" FunctionParameters ")" FunctionReturnType BlockExpression
 
@@ -28,6 +29,13 @@ ItemAssignment' -> "=" Expression
 
 StaticItem -> "static" Mut' ident ":" Type ItemAssignment' ";"
 
+ExternBlock -> "extern" "\"C\"" "{" ExternFunctions "}"
+
+ExternFunctions -> ExternFunction ExternFunctions
+                 | ε
+
+ExternFunction -> "fn" ident "(" FunctionParameters ")" FunctionReturnType ";"
+
 LetStatement -> "let" Mut' ident ":" Type ItemAssignment' ";"
 
 ExpressionStatement -> ExpressionWithoutBlock
@@ -45,6 +53,7 @@ ExpressionWithoutBlock' -> LiteralExpression
 ExpressionWithBlock -> BlockExpression
                         | LoopExpression
                         | IfExpression
+                        | UnsafeExpression
 
 LiteralExpression -> integer_literal
                    | float_literal
@@ -132,6 +141,8 @@ IfExpressionTail' -> "else" ElseExpression'
                    | ε
 ElseExpression' -> BlockExpression
                  | IfExpression
+
+UnsafeExpression -> "unsafe" BlockExpression
 
 ReturnExpression -> "return" ReturnExpressionTail'
 ReturnExpressionTail' -> Expression

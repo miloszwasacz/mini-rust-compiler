@@ -4,6 +4,7 @@ Item -> VisItem
 
 VisItem -> Function
          | StaticItem
+         | ExternBlock
 
 Function -> "fn" ident "(" FunctionParameters? ")" FunctionReturnType? BlockExpression
 
@@ -15,6 +16,10 @@ FunctionParam -> ident ":" Type
 FunctionReturnType -> "->" Type
 
 StaticItem -> "static" "mut"? ident ":" Type ("=" Expression)? ";"
+
+ExternBlock -> "extern" "\"C\"" "{" ExternFunction* "}"
+
+ExternFunction -> "fn" ident "(" FunctionParameters? ")" FunctionReturnType? ";"
 
 Statement -> ";"
            | LetStatement
@@ -44,6 +49,7 @@ ExpressionWithoutBlock -> LiteralExpression
 ExpressionWithBlock -> BlockExpression
                      | LoopExpression
                      | IfExpression
+                     | UnsafeExpression
 
 LiteralExpression -> integer_literal
                    | float_literal
@@ -112,6 +118,8 @@ PredicateLoopExpression -> "while" Expression BlockExpression
 /* TODO Add RangeExpression */
 
 IfExpression -> "if" Expression BlockExpression ("else" (BlockExpression | IfExpression))?
+
+UnsafeExpression -> "unsafe" BlockExpression
 
 ReturnExpression -> "return" Expression?
 
