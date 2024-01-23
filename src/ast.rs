@@ -2,35 +2,41 @@
 
 // TODO Create all the AST node types
 // Declarations:
-// - Crate
-// - Function & function prototype
-// - Static item (i.e. a global variable)
-// - Extern block
+// - [ ] Crate
+// - [ ] Function & function prototype
+// - [ ] Static item (i.e. a global variable)
+// - [ ] Extern block
 //
 // Statements:
-// - Let statement & parameters (i.e. variable declaration)
-// - Expression statement
+// - [ ] Let statement & parameters (i.e. variable declaration)
+// - [ ] Expression statement
 //
 // Expressions:
-// - Block
-// - Literal
-// - Variable & underscore expression
-// - Function call
-// - Operator
-//   - Assignment
-//   - Arithmetic or logical
-//   - Comparison
-//   - Negation
-//   - Lazy boolean
-// - Type cast
-// - Loop
-//   - Infinite loop
-//   - While loop
-// - If
-// - Unsafe block
-// - Return
+// - [ ] Block
+// - [x] Literal
+// - [ ] Variable & underscore expression
+// - [ ] Function call
+// - [ ] Operator
+//   - [ ] Assignment
+//   - [ ] Arithmetic or logical
+//   - [ ] Comparison
+//   - [ ] Negation
+//   - [ ] Lazy boolean
+// - [ ] Type cast
+// - [ ] Loop
+//   - [ ] Infinite loop
+//   - [ ] While loop
+// - [ ] If
+// - [ ] Unsafe block
+// - [ ] Return
 
+pub use self::expr::literal::*;
+pub use self::expr::*;
 pub use self::node::*;
+pub use self::types::*;
+
+mod expr;
+mod types;
 
 mod node {
     use std::fmt;
@@ -57,14 +63,25 @@ mod node {
         /// Adds this AST node to the given tree builder.
         ///
         /// This method is used to generate a pretty representation of the AST suitable for display.
+        /// Usually, the default implementation of this method is sufficient -- make a branch if the node
+        /// has [children][^note], otherwise make a leaf -- but it can be overridden if necessary.
+        ///
+        /// [children]: ASTNode::children
+        ///
+        /// [^note]: The returned iterator is [Some].
         fn add_to_tree_string(&self, builder: &mut TreeBuilder) {
-            let mut branch = builder.add_branch(format!("{self}").as_str());
-            if let Some(children) = self.children() {
-                for child in children {
-                    child.add_to_tree_string(builder);
+            match self.children() {
+                Some(children) => {
+                    let mut branch = builder.add_branch(format!("{self}").as_str());
+                    for child in children {
+                        child.add_to_tree_string(builder);
+                    }
+                    branch.release();
+                }
+                None => {
+                    builder.add_leaf(format!("{self}").as_str());
                 }
             }
-            branch.release();
         }
     }
 
@@ -109,5 +126,42 @@ mod node {
         };
     }
 
+    /// A macro that can be used as a shorthand for implementing [ASTNode::span] and [ASTNode::as_ast].
+    ///
+    /// # Example
+    /// ```ignore
+    /// use debug_tree::TreeBuilder;
+    /// use crate::ast::{ASTNode, ASTChildIterator};
+    /// use crate::ast::ast_defaults;
+    /// use crate::token::Span;
+    ///
+    /// struct MyNode {
+    ///     // ...
+    /// }
+    ///     
+    /// impl ASTNode for MyNode {
+    ///     ast_defaults!();
+    ///
+    ///     fn children(&self) -> Option<ASTChildIterator> {
+    ///         // Your implementation for `children`.
+    ///     }
+    ///
+    ///     fn add_to_tree_string(&self, builder: &mut TreeBuilder) {
+    ///         // Your implementation for `add_to_tree_string`
+    ///         // (or just use the trait's base implementation).
+    ///     }
+    /// }
+    /// ```
+    macro_rules! ast_defaults {
+        () => {
+            fn span(&self) -> Span {
+                self.span
+            }
+
+            as_ast!();
+        };
+    }
+
     pub(super) use as_ast;
+    pub(super) use ast_defaults;
 }
