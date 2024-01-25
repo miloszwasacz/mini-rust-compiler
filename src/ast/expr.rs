@@ -2,6 +2,7 @@
 
 use crate::ast::ASTNode;
 
+pub mod block;
 pub mod literal;
 
 /// A trait for all expression-related AST nodes.

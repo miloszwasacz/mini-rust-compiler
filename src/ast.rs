@@ -12,7 +12,7 @@
 // - [ ] Expression statement
 //
 // Expressions:
-// - [ ] Block
+// - [x] Block
 // - [x] Literal
 // - [ ] Variable & underscore expression
 // - [ ] Function call
@@ -30,12 +30,15 @@
 // - [ ] Unsafe block
 // - [ ] Return
 
+pub use self::expr::block::*;
 pub use self::expr::literal::*;
 pub use self::expr::*;
 pub use self::node::*;
+pub use self::stmt::*;
 pub use self::types::*;
 
 mod expr;
+mod stmt;
 mod types;
 
 mod node {
@@ -50,7 +53,7 @@ mod node {
 
     //TODO Add examples to all the doc comments.
     /// A trait defining the common interface for all AST nodes.
-    pub trait ASTNode: fmt::Display {
+    pub trait ASTNode: fmt::Debug + fmt::Display {
         /// Returns the span that defines the location of this AST node.
         fn span(&self) -> Span;
 
@@ -131,8 +134,7 @@ mod node {
     /// # Example
     /// ```ignore
     /// use debug_tree::TreeBuilder;
-    /// use crate::ast::{ASTNode, ASTChildIterator};
-    /// use crate::ast::ast_defaults;
+    /// use crate::ast::{as_ast, ast_defaults, ASTNode, ASTChildIterator};
     /// use crate::token::Span;
     ///
     /// struct MyNode {

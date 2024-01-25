@@ -1,13 +1,13 @@
 //! A module containing Literal AST node implementations.
 
-pub mod bool;
-pub mod float;
-pub mod int;
-
 use std::fmt;
 
 use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExpressionASTNode, VarType};
 use crate::token::Span;
+
+pub mod bool;
+pub mod float;
+pub mod int;
 
 /// A generic AST node representing a literal.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -51,7 +51,7 @@ impl<T> LiteralASTNode<T> {
     }
 }
 
-impl<T: fmt::Display> ASTNode for LiteralASTNode<T> {
+impl<T: fmt::Debug + fmt::Display> ASTNode for LiteralASTNode<T> {
     ast_defaults!();
 
     fn children(&self) -> Option<ASTChildIterator> {
