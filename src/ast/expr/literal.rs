@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExpressionASTNode, VarType};
+use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, VarType};
 use crate::token::Span;
 
 pub mod bool;
@@ -59,7 +59,7 @@ impl<T: fmt::Debug + fmt::Display> ASTNode for LiteralASTNode<T> {
     }
 }
 
-impl<T: fmt::Debug + fmt::Display> ExpressionASTNode for LiteralASTNode<T> {}
+impl<T: fmt::Debug + fmt::Display> ExprASTNode for LiteralASTNode<T> {}
 
 impl<T: fmt::Display> fmt::Display for LiteralASTNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

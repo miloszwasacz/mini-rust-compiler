@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExpressionASTNode};
+use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode};
 use crate::token::Span;
 
 use super::{bin_op_ast_node, operator_display, BinOperator};

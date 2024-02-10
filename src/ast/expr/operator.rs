@@ -1,15 +1,16 @@
 //! A module containing all the operator expression AST nodes.
 
-pub use self::arithmetic::*;
-pub use self::comparison::*;
+pub use self::arith::*;
+pub use self::comp::*;
 pub use self::lazy_bool::*;
 use self::macros::*;
-pub use self::negation::*;
+pub use self::neg::*;
 
-pub mod arithmetic;
-pub mod comparison;
+pub mod arith;
+mod assign;
+pub mod comp;
 pub mod lazy_bool;
-pub mod negation;
+pub mod neg;
 
 /// A trait for all binary operators.
 trait BinOperator {
@@ -30,8 +31,8 @@ mod macros {
             $( #[$doc] )*
             pub struct $name {
                 operator: $operator,
-                lhs: Box<dyn ExpressionASTNode>,
-                rhs: Box<dyn ExpressionASTNode>,
+                lhs: Box<dyn ExprASTNode>,
+                rhs: Box<dyn ExprASTNode>,
                 span: Span,
             }
 
@@ -39,8 +40,8 @@ mod macros {
                 #[doc = concat!("Creates a new `", stringify!($name), "` with the given operator, lhs, rhs and span.")]
                 pub fn new(
                     operator: $operator,
-                    lhs: Box<dyn ExpressionASTNode>,
-                    rhs: Box<dyn ExpressionASTNode>,
+                    lhs: Box<dyn ExprASTNode>,
+                    rhs: Box<dyn ExprASTNode>,
                     span: Span,
                 ) -> $name {
                     $name {
@@ -62,7 +63,7 @@ mod macros {
                 }
             }
 
-            impl ExpressionASTNode for $name {}
+            impl ExprASTNode for $name {}
 
             impl fmt::Display for $name
             where
