@@ -59,7 +59,7 @@ impl<T: fmt::Debug + fmt::Display> ASTNode for LiteralASTNode<T> {
     }
 }
 
-impl ExpressionASTNode for LiteralASTNode<bool> {}
+impl<T: fmt::Debug + fmt::Display> ExpressionASTNode for LiteralASTNode<T> {}
 
 impl<T: fmt::Display> fmt::Display for LiteralASTNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

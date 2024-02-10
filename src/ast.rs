@@ -18,10 +18,10 @@
 // - [ ] Function call
 // - [ ] Operator
 //   - [ ] Assignment
-//   - [ ] Arithmetic or logical
-//   - [ ] Comparison
-//   - [ ] Negation
-//   - [ ] Lazy boolean
+//   - [x] Arithmetic or logical
+//   - [x] Comparison
+//   - [x] Negation
+//   - [x] Lazy boolean
 // - [ ] Type cast
 // - [ ] Loop
 //   - [ ] Infinite loop
@@ -30,8 +30,6 @@
 // - [ ] Unsafe block
 // - [ ] Return
 
-pub use self::expr::block::*;
-pub use self::expr::literal::*;
 pub use self::expr::*;
 pub use self::node::*;
 pub use self::stmt::*;
