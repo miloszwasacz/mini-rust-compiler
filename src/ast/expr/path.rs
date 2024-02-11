@@ -1,6 +1,9 @@
 //! A module containing Path AST node implementation.
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode};
+use crate::ast::{
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode,
+    PlaceExprASTNode, ValueExprASTNode,
+};
 use crate::token::Span;
 
 /// An AST node representing a path (i.e. a variable or item).
@@ -26,6 +29,12 @@ impl ASTNode for PathASTNode {
 }
 
 impl ExprASTNode for PathASTNode {}
+
+impl PlaceExprASTNode for PathASTNode {}
+
+impl ValueExprASTNode for PathASTNode {}
+
+impl AssigneeExprASTNode for PathASTNode {}
 
 impl std::fmt::Display for PathASTNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

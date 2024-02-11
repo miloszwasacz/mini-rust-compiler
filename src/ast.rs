@@ -16,8 +16,8 @@
 // - [x] Literal
 // - [ ] Variable & underscore expression
 // - [ ] Function call
-// - [ ] Operator
-//   - [ ] Assignment
+// - [x] Assignment
+// - [x] Operator
 //   - [x] Arithmetic or logical
 //   - [x] Comparison
 //   - [x] Negation

@@ -2,7 +2,9 @@
 
 use std::fmt;
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, VarType};
+use crate::ast::{
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, ValueExprASTNode, VarType,
+};
 use crate::token::Span;
 
 pub mod bool;
@@ -20,8 +22,8 @@ pub struct LiteralASTNode<T> {
 impl<T> LiteralASTNode<T> {
     /// Creates a new `LiteralASTNode` with the given value, type and span.
     ///
-    /// This is the generic implementation of the `LiteralASTNode` constructor.
-    /// Each concrete type [T] should have its own implementation of a constructor
+    /// This is a generic implementation of the `LiteralASTNode` constructor.
+    /// Each concrete type [T] should have its own implementation of the constructor
     /// which calls this one while specifying the correct `var_type`.
     ///
     /// # Example
@@ -60,6 +62,8 @@ impl<T: fmt::Debug + fmt::Display> ASTNode for LiteralASTNode<T> {
 }
 
 impl<T: fmt::Debug + fmt::Display> ExprASTNode for LiteralASTNode<T> {}
+
+impl<T: fmt::Debug + fmt::Display> ValueExprASTNode for LiteralASTNode<T> {}
 
 impl<T: fmt::Display> fmt::Display for LiteralASTNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

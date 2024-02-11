@@ -2,7 +2,10 @@
 
 use std::fmt;
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, StatementASTNode};
+use crate::ast::{
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, StatementASTNode,
+    ValueExprASTNode,
+};
 use crate::token::Span;
 
 /// An AST node representing a block expression.
@@ -28,6 +31,8 @@ impl ASTNode for BlockASTNode {
 }
 
 impl ExprASTNode for BlockASTNode {}
+
+impl ValueExprASTNode for BlockASTNode {}
 
 impl fmt::Display for BlockASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

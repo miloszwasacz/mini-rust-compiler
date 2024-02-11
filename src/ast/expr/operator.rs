@@ -7,7 +7,6 @@ use self::macros::*;
 pub use self::neg::*;
 
 pub mod arith;
-mod assign;
 pub mod comp;
 pub mod lazy_bool;
 pub mod neg;
@@ -64,6 +63,8 @@ mod macros {
             }
 
             impl ExprASTNode for $name {}
+
+            impl ValueExprASTNode for $name {}
 
             impl fmt::Display for $name
             where
