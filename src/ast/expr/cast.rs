@@ -2,7 +2,9 @@
 
 use std::{fmt, iter};
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, VarType};
+use crate::ast::{
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, ValueExprASTNode, VarType,
+};
 use crate::token::Span;
 
 /// An AST node representing a type cast.
@@ -30,8 +32,10 @@ impl ASTNode for TypeCastASTNode {
 
 impl ExprASTNode for TypeCastASTNode {}
 
+impl ValueExprASTNode for TypeCastASTNode {}
+
 impl fmt::Display for TypeCastASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "TypeCast {} {}", self.span, self.ty)
+        write!(f, "Type Cast {} {}", self.span, self.ty)
     }
 }

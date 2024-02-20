@@ -2,26 +2,32 @@
 
 use std::fmt;
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode};
+use crate::ast::{
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, PathASTNode, ValueExprASTNode,
+};
 use crate::token::Span;
 
 /// An AST node representing a function call.
 #[derive(Debug)]
 pub struct FunCallASTNode {
-    name: String,
+    path: Box<PathASTNode>,
     args: Vec<Box<dyn ExprASTNode>>,
     span: Span,
 }
 
 impl FunCallASTNode {
-    /// Creates a new `FunCallASTNode` with the given name, arguments and span.
-    pub fn new(name: String, args: Vec<Box<dyn ExprASTNode>>, span: Span) -> FunCallASTNode {
-        FunCallASTNode { name, args, span }
+    /// Creates a new `FunCallASTNode` with the given path, arguments and span.
+    pub fn new(
+        path: Box<PathASTNode>,
+        args: Vec<Box<dyn ExprASTNode>>,
+        span: Span,
+    ) -> FunCallASTNode {
+        FunCallASTNode { path, args, span }
     }
 
-    /// Returns the name of the function being called.
-    pub fn name(&self) -> &str {
-        &self.name
+    /// Returns the path to the called function.
+    pub fn path(&self) -> &str {
+        self.path.path()
     }
 }
 
@@ -35,8 +41,10 @@ impl ASTNode for FunCallASTNode {
 
 impl ExprASTNode for FunCallASTNode {}
 
+impl ValueExprASTNode for FunCallASTNode {}
+
 impl fmt::Display for FunCallASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "FunCall {} {}", self.span, self.name)
+        write!(f, "Function Call {} {}", self.span, self.path())
     }
 }

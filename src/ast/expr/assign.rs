@@ -41,8 +41,10 @@ impl ASTNode for AssignASTNode {
 
 impl ExprASTNode for AssignASTNode {}
 
+impl ValueExprASTNode for AssignASTNode {}
+
 impl std::fmt::Display for AssignASTNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Assign {}", self.span)
+        write!(f, "Assignment {}", self.span)
     }
 }

@@ -10,6 +10,7 @@ pub use self::literal::*;
 pub use self::operator::*;
 pub use self::path::*;
 pub use self::r#if::*;
+pub use self::underscore::*;
 
 pub mod assign;
 pub mod block;
@@ -19,6 +20,7 @@ pub mod r#if;
 pub mod literal;
 pub mod operator;
 pub mod path;
+pub mod underscore;
 
 /// A trait for all expression-related AST nodes.
 pub trait ExprASTNode: ASTNode {}

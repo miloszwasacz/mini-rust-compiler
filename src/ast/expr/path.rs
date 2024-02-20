@@ -7,7 +7,7 @@ use crate::ast::{
 use crate::token::Span;
 
 /// An AST node representing a path (i.e. a variable or item).
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PathASTNode {
     path: String,
     span: Span,
@@ -15,8 +15,16 @@ pub struct PathASTNode {
 
 impl PathASTNode {
     /// Creates a new `PathASTNode` with the given path and span.
-    pub fn new(path: String, span: Span) -> PathASTNode {
-        PathASTNode { path, span }
+    pub fn new(path: &str, span: Span) -> PathASTNode {
+        PathASTNode {
+            path: path.to_string(),
+            span,
+        }
+    }
+
+    /// Returns the path.
+    pub fn path(&self) -> &str {
+        &self.path
     }
 }
 

@@ -14,7 +14,7 @@
 // Expressions:
 // - [x] Block
 // - [x] Literal
-// - [ ] Variable & underscore expression
+// - [x] Variable & underscore expression
 // - [x] Function call
 // - [x] Assignment
 // - [x] Operator

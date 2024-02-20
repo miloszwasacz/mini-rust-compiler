@@ -2,7 +2,9 @@
 
 use std::fmt;
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, BlockASTNode, ExprASTNode};
+use crate::ast::{
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, BlockASTNode, ExprASTNode, ValueExprASTNode,
+};
 use crate::token::Span;
 
 /// An AST node representing an if expression.
@@ -65,6 +67,8 @@ impl ASTNode for IfASTNode {
 }
 
 impl ExprASTNode for IfASTNode {}
+
+impl ValueExprASTNode for IfASTNode {}
 
 impl fmt::Display for IfASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
