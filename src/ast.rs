@@ -15,14 +15,14 @@
 // - [x] Block
 // - [x] Literal
 // - [ ] Variable & underscore expression
-// - [ ] Function call
+// - [x] Function call
 // - [x] Assignment
 // - [x] Operator
 //   - [x] Arithmetic or logical
 //   - [x] Comparison
 //   - [x] Negation
 //   - [x] Lazy boolean
-// - [ ] Type cast
+// - [x] Type cast
 // - [ ] Loop
 //   - [ ] Infinite loop
 //   - [ ] While loop
