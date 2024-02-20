@@ -5,14 +5,17 @@ use crate::ast::ASTNode;
 pub use self::assign::*;
 pub use self::block::*;
 pub use self::cast::*;
+pub use self::fun_call::*;
 pub use self::literal::*;
 pub use self::operator::*;
 pub use self::path::*;
+pub use self::r#if::*;
 
 pub mod assign;
 pub mod block;
 pub mod cast;
-mod fun_call;
+pub mod fun_call;
+pub mod r#if;
 pub mod literal;
 pub mod operator;
 pub mod path;

@@ -26,7 +26,7 @@
 // - [ ] Loop
 //   - [ ] Infinite loop
 //   - [ ] While loop
-// - [ ] If
+// - [x] If
 // - [ ] Unsafe block
 // - [ ] Return
 
