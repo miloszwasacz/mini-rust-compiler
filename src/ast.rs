@@ -24,7 +24,7 @@
 //   - [x] Lazy boolean
 // - [x] Type cast
 // - [ ] Loop
-//   - [ ] Infinite loop
+//   - [x] Infinite loop
 //   - [ ] While loop
 // - [x] If
 // - [x] Unsafe block
