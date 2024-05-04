@@ -15,18 +15,18 @@ pub use self::r#return::*;
 pub use self::underscore::*;
 pub use self::unsafe_block::*;
 
-pub mod assign;
-pub mod block;
-pub mod cast;
-pub mod fun_call;
-pub mod r#if;
-pub mod literal;
-pub mod r#loop;
-pub mod operator;
-pub mod path;
-pub mod r#return;
-pub mod underscore;
-pub mod unsafe_block;
+mod assign;
+mod block;
+mod cast;
+mod fun_call;
+mod r#if;
+mod literal;
+mod r#loop;
+mod operator;
+mod path;
+mod r#return;
+mod underscore;
+mod unsafe_block;
 
 /// A trait for all expression-related AST nodes.
 pub trait ExprASTNode: ASTNode {}

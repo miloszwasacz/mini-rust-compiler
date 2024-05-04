@@ -7,9 +7,9 @@ use crate::ast::{
 };
 use crate::token::Span;
 
-pub mod bool;
-pub mod float;
-pub mod int;
+mod bool;
+mod float;
+mod int;
 
 /// A generic AST node representing a literal.
 #[derive(Debug, Clone, PartialEq, Eq)]

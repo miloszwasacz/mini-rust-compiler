@@ -6,9 +6,9 @@ pub use self::expr::*;
 pub use self::param::*;
 pub use self::r#let::*;
 
-pub mod expr;
-pub mod r#let;
-pub mod param;
+mod expr;
+mod r#let;
+mod param;
 
 /// A trait for all statement-related AST nodes.
 pub trait StatementASTNode: ASTNode {}

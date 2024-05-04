@@ -3,5 +3,5 @@
 pub use self::inf_loop::*;
 pub use self::r#while::*;
 
-pub mod inf_loop;
-pub mod r#while;
+mod inf_loop;
+mod r#while;

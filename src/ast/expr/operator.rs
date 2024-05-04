@@ -6,10 +6,10 @@ pub use self::lazy_bool::*;
 use self::macros::*;
 pub use self::neg::*;
 
-pub mod arith;
-pub mod comp;
-pub mod lazy_bool;
-pub mod neg;
+mod arith;
+mod comp;
+mod lazy_bool;
+mod neg;
 
 /// A trait for all binary operators.
 trait BinOperator {
