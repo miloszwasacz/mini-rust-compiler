@@ -6,7 +6,7 @@
 // Items:
 // - [x] Function (+ function prototype)
 // - [ ] Static item (i.e. a global variable)
-// - [ ] Extern block
+// - [x] Extern block
 //
 // Statements:
 // - [x] Let statement
