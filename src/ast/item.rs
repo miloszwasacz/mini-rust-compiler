@@ -10,10 +10,12 @@ use crate::token::Span;
 pub use self::func::*;
 pub use self::proto::*;
 pub use self::r#extern::*;
+pub use self::r#static::*;
 
 mod r#extern;
 mod func;
 mod proto;
+mod r#static;
 
 /// Delegate a method call to AST node contained in the ItemASTNode.
 macro_rules! delegate_ast {
@@ -21,6 +23,7 @@ macro_rules! delegate_ast {
         match $self {
             ItemASTNode::Func(func) => func.$method($($param)*),
             ItemASTNode::Extern(ext) => ext.$method($($param)*),
+            ItemASTNode::Static(stat) => stat.$method($($param)*),
         }
     };
 }
@@ -32,6 +35,8 @@ pub enum ItemASTNode {
     Func(Box<FuncASTNode>),
     /// An extern block.
     Extern(Box<ExternASTNode>),
+    /// A static item.
+    Static(Box<StaticASTNode>),
 }
 
 impl ASTNode for ItemASTNode {
@@ -57,6 +62,7 @@ impl fmt::Display for ItemASTNode {
         match &self {
             ItemASTNode::Func(func) => write!(f, "{}", func),
             ItemASTNode::Extern(ext) => write!(f, "{}", ext),
+            ItemASTNode::Static(stat) => write!(f, "{}", stat),
         }
     }
 }

@@ -5,6 +5,10 @@ use std::fmt;
 use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, FuncProtoASTNode};
 use crate::token::Span;
 
+pub use self::r#static::*;
+
+mod r#static;
+
 /// An AST node representing an extern block.
 #[derive(Debug)]
 pub struct ExternASTNode {
@@ -16,8 +20,10 @@ pub struct ExternASTNode {
 /// An item in an extern block.
 #[derive(Debug)]
 pub enum ExternItem {
-    /// An extern function declaration.
+    /// A declaration of an extern function.
     Func(Box<FuncProtoASTNode>),
+    /// A declaration of an extern static item.
+    Static(Box<ExternStaticASTNode>),
 }
 
 impl ExternASTNode {
@@ -50,6 +56,7 @@ impl ExternItem {
     pub fn as_ast(&self) -> &dyn ASTNode {
         match self {
             ExternItem::Func(func) => func.as_ast(),
+            ExternItem::Static(stat) => stat.as_ast(),
         }
     }
 }

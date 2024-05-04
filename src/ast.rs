@@ -1,11 +1,12 @@
 //! Defines the AST for the μRust language.
 
-// TODO Create all the AST node types
+// Available AST nodes:
+//
 // - [x] Crate
 //
 // Items:
 // - [x] Function (+ function prototype)
-// - [ ] Static item (i.e. a global variable)
+// - [x] Static item (i.e. a global variable)
 // - [x] Extern block
 //
 // Statements:
