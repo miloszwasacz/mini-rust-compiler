@@ -23,9 +23,9 @@
 //   - [x] Negation
 //   - [x] Lazy boolean
 // - [x] Type cast
-// - [ ] Loop
+// - [x] Loop
 //   - [x] Infinite loop
-//   - [ ] While loop
+//   - [x] While loop
 // - [x] If
 // - [x] Unsafe block
 // - [x] Return
