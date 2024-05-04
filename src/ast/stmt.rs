@@ -2,9 +2,11 @@
 
 use crate::ast::ASTNode;
 
+pub use self::expr::*;
 pub use self::param::*;
 pub use self::r#let::*;
 
+pub mod expr;
 pub mod r#let;
 pub mod param;
 

@@ -10,7 +10,7 @@
 // Statements:
 // - [x] Let statement
 // - [x] Function parameter
-// - [ ] Expression statement
+// - [x] Expression statement
 //
 // Expressions:
 // - [x] Block
