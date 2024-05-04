@@ -28,7 +28,7 @@
 //   - [ ] While loop
 // - [x] If
 // - [ ] Unsafe block
-// - [ ] Return
+// - [x] Return
 
 pub use self::expr::*;
 pub use self::node::*;
