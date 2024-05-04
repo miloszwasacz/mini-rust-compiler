@@ -27,7 +27,7 @@
 //   - [ ] Infinite loop
 //   - [ ] While loop
 // - [x] If
-// - [ ] Unsafe block
+// - [x] Unsafe block
 // - [x] Return
 
 pub use self::expr::*;
