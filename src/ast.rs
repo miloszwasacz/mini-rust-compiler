@@ -8,7 +8,8 @@
 // - [ ] Extern block
 //
 // Statements:
-// - [ ] Let statement & parameters (i.e. variable declaration)
+// - [ ] Let statement
+// - [x] Function parameter
 // - [ ] Expression statement
 //
 // Expressions:
