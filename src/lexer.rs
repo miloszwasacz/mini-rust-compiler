@@ -1,26 +1,28 @@
 //! The module containing the lexer for the μRust compiler.
 
-use std::ffi::OsStr;
 use std::io;
 use std::iter::Peekable;
 use std::path::Path;
 
 use unicode_ident::{is_xid_continue, is_xid_start};
 
-use crate::lexer::error::{LResult, LexerError, LexerErrorKind};
-use crate::lexer::file_reader::{FileReader, FileReaderIter};
-use crate::lexer::helper::{is_digit, is_new_line, is_whitespace};
 use crate::token::{Position, Span, Token, TokenType};
 
-mod error;
+use self::error::*;
+use self::file_reader::*;
+
+pub mod error;
 mod file_reader;
 mod helper;
+
+/// A result of a lexing operation.
+pub type Result<T> = std::result::Result<T, LexerError>;
 
 /// The lexer for the μRust compiler.
 ///
 /// # Examples
 ///
-/// The Lexer should be used as an iterator over `LResult<Token>`.
+/// The Lexer should be used as an iterator over `lexer::Result<Token>`.
 /// ```no_run
 /// # use mini_rust_compiler_components::lexer::Lexer;
 ///
@@ -37,7 +39,7 @@ mod helper;
 /// }
 /// ```
 pub struct Lexer {
-    file_name: String,
+    filename: String,
     position: Position,
     iter: Peekable<FileReaderIter>,
 }
@@ -46,45 +48,27 @@ impl Lexer {
     //TODO Add tests
     /// Creates a new `Lexer` that will lex the file at the given path.
     pub fn new<P: AsRef<Path>>(path: P) -> io::Result<Lexer> {
-        let file_name = Lexer::get_file_name_from_path(&path)?;
+        let filename = helper::filename_from_path(&path)?;
         let iter = FileReader::new(path).try_iter()?.peekable();
         Ok(Lexer {
-            file_name,
+            filename,
             position: Position::new(),
             iter,
         })
     }
 
-    //TODO Add tests
-    /// Extracts the file name from the given path.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `io::Error` with `io::ErrorKind::InvalidInput` if the given
-    /// path is invalid (ends with `..` or is not valid UTF-8).
-    fn get_file_name_from_path<P: AsRef<Path>>(path: &P) -> io::Result<String> {
-        let file_name = path.as_ref().file_name().and_then(OsStr::to_str);
-        match file_name {
-            None => Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "Invalid file name",
-            )),
-            Some(file_name) => Ok(file_name.to_string()),
-        }
-    }
-
     /// Returns the name of the file being lexed.
-    pub fn get_file_name(&self) -> &str {
-        &self.file_name
+    pub fn filename(&self) -> &str {
+        &self.filename
     }
 
     //TODO Add tests
     /// Returns the next token from the source file.
-    fn get_token(&mut self) -> LResult<Option<Token>> {
+    fn next_token(&mut self) -> Result<Option<Token>> {
         // Skip any whitespace
-        while let Some(c) = self.iter.next_if(|&c| is_whitespace(c)) {
+        while let Some(c) = self.iter.next_if(|&c| helper::is_whitespace(c)) {
             self.position.col_inc();
-            if is_new_line(c) {
+            if helper::is_new_line(c) {
                 self.position.line_inc();
             }
         }
@@ -103,10 +87,10 @@ impl Lexer {
                 ('-', '>') => "->",
                 ('/', '/') => {
                     // Skip comment
-                    while self.iter.next_if(|&c| !is_new_line(c)).is_some() {
+                    while self.iter.next_if(|&c| !helper::is_new_line(c)).is_some() {
                         self.position.col_inc();
                     }
-                    return self.get_token();
+                    return self.next_token();
                 }
                 ('&', '&') => "&&",
                 ('|', '|') => "||",
@@ -134,7 +118,7 @@ impl Lexer {
         // Number literals
         if c.is_ascii_digit() {
             let mut num_str = String::from(c);
-            while let Some(c) = self.iter.next_if(|&c| is_digit(c)) {
+            while let Some(c) = self.iter.next_if(|&c| helper::is_digit(c)) {
                 num_str.push(c);
                 self.position.col_inc();
             }
@@ -143,7 +127,7 @@ impl Lexer {
                 // Floating point literal
                 num_str.push(self.iter.next().unwrap());
                 self.position.col_inc();
-                while let Some(c) = self.iter.next_if(|&c| is_digit(c)) {
+                while let Some(c) = self.iter.next_if(|&c| helper::is_digit(c)) {
                     num_str.push(c);
                     self.position.col_inc();
                 }
@@ -215,10 +199,10 @@ impl Lexer {
 }
 
 impl Iterator for Lexer {
-    type Item = LResult<Token>;
+    type Item = Result<Token>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.get_token() {
+        match self.next_token() {
             Ok(Some(token)) => Some(Ok(token)),
             Ok(None) => None,
             Err(err) => Some(Err(err)),

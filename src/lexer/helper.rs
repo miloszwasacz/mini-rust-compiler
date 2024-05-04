@@ -1,5 +1,27 @@
 //! Helper functions for the lexer.
 
+use std::ffi::OsStr;
+use std::io;
+use std::path::Path;
+
+//TODO Add tests
+/// Extracts the file name from the given path.
+///
+/// # Errors
+///
+/// Returns an `io::Error` with `io::ErrorKind::InvalidInput` if the given
+/// path is invalid (ends with `..` or is not valid UTF-8).
+pub fn filename_from_path<P: AsRef<Path>>(path: &P) -> io::Result<String> {
+    let file_name = path.as_ref().file_name().and_then(OsStr::to_str);
+    match file_name {
+        None => Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Invalid file name",
+        )),
+        Some(file_name) => Ok(file_name.to_string()),
+    }
+}
+
 /// Checks if the character is a whitespace, i.e. one of the following:
 /// - Horizontal tab (U+0009, '\t')
 /// - Line feed (U+000A, '\n')

@@ -1,13 +1,20 @@
-use crate::token::Span;
+//! Error types for the lexer.
+
 use std::error::Error;
 use std::fmt;
+
+use crate::token::Span;
 
 /// The type of error that can occur during lexing.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LexerErrorKind {
+    /// The integer literal has an invalid format.
     InvalidIntLiteral(String),
+    /// The float literal has an invalid format.
     InvalidFloatLiteral(String),
+    /// The string literal is not terminated (i.e. it is missing a closing quote).
     UnterminatedStringLiteral,
+    /// An unknown token was encountered.
     UnknownToken(char),
 }
 
@@ -49,6 +56,3 @@ impl fmt::Display for LexerError {
 }
 
 impl Error for LexerError {}
-
-/// A result of a lexing operation.
-pub type LResult<T> = Result<T, LexerError>;
