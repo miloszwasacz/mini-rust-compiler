@@ -26,7 +26,8 @@ impl ASTNode for BlockASTNode {
     ast_defaults!();
 
     fn children(&self) -> Option<ASTChildIterator> {
-        Some(Box::new(self.statements.iter().map(|s| s.as_ast())))
+        let iter = self.statements.iter().map(|s| s.as_ast());
+        Some(Box::new(iter))
     }
 }
 

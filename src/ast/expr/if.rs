@@ -1,6 +1,6 @@
 //! A module containing If AST node implementation.
 
-use std::fmt;
+use std::{fmt, iter};
 
 use crate::ast::{
     as_ast, ast_defaults, ASTChildIterator, ASTNode, BlockASTNode, ExprASTNode, ValueExprASTNode,
@@ -51,18 +51,11 @@ impl ASTNode for IfASTNode {
     ast_defaults!();
 
     fn children(&self) -> Option<ASTChildIterator> {
-        let condition = self.condition.as_ast();
-        let then_block = self.then_block.as_ast();
-        Some(Box::new(
-            match &self.else_block {
-                Some(else_block) => {
-                    let else_block = else_block.as_ast();
-                    vec![condition, then_block, else_block]
-                }
-                None => vec![condition, then_block],
-            }
-            .into_iter(),
-        ))
+        let condition = iter::once(self.condition.as_ast());
+        let then_block = iter::once(self.then_block.as_ast());
+        let else_block = self.else_block.iter().map(|b| b.as_ast());
+        let iter = condition.chain(then_block).chain(else_block);
+        Some(Box::new(iter))
     }
 }
 

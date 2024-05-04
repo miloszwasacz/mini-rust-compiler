@@ -1,6 +1,6 @@
 //! A module containing Arithmetic or Logical operator AST node implementation.
 
-use std::fmt;
+use std::{fmt, iter};
 
 use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, ValueExprASTNode};
 use crate::token::Span;

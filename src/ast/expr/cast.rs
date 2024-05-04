@@ -26,7 +26,8 @@ impl ASTNode for TypeCastASTNode {
     ast_defaults!();
 
     fn children(&self) -> Option<ASTChildIterator> {
-        Some(Box::new(iter::once(self.value.as_ast())))
+        let iter = iter::once(self.value.as_ast());
+        Some(Box::new(iter))
     }
 }
 

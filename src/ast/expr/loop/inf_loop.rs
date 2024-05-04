@@ -1,6 +1,6 @@
 //! A module containing the Infinite Loop AST node implementation.
 
-use std::fmt;
+use std::{fmt, iter};
 
 use crate::ast::{
     as_ast, ast_defaults, ASTChildIterator, ASTNode, BlockASTNode, ExprASTNode, ValueExprASTNode,
@@ -25,7 +25,8 @@ impl ASTNode for InfLoopASTNode {
     ast_defaults!();
 
     fn children(&self) -> Option<ASTChildIterator> {
-        Some(Box::new(std::iter::once(self.block.as_ast())))
+        let iter = iter::once(self.block.as_ast());
+        Some(Box::new(iter))
     }
 }
 

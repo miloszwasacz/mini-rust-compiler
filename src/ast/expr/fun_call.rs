@@ -35,7 +35,8 @@ impl ASTNode for FunCallASTNode {
     ast_defaults!();
 
     fn children(&self) -> Option<ASTChildIterator> {
-        Some(Box::new(self.args.iter().map(|arg| arg.as_ast())))
+        let iter = self.args.iter().map(|arg| arg.as_ast());
+        Some(Box::new(iter))
     }
 }
 

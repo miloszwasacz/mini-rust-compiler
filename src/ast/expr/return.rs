@@ -1,6 +1,6 @@
 //! A module containing Return AST node implementation.
 
-use std::fmt;
+use std::{fmt, iter};
 
 use crate::ast::{as_ast, ast_defaults, ASTNode, ExprASTNode, ValueExprASTNode};
 use crate::token::Span;
@@ -23,7 +23,8 @@ impl ASTNode for ReturnASTNode {
     ast_defaults!();
 
     fn children(&self) -> Option<crate::ast::ASTChildIterator> {
-        Some(Box::new(std::iter::once(self.value.as_ast())))
+        let iter = iter::once(self.value.as_ast());
+        Some(Box::new(iter))
     }
 }
 

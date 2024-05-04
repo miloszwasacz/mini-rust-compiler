@@ -1,5 +1,7 @@
 //! A module containing Assignment AST node implementation.
 
+use std::{fmt, iter};
+
 use crate::ast::{
     as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode,
     ValueExprASTNode,
@@ -33,9 +35,10 @@ impl ASTNode for AssignASTNode {
     ast_defaults!();
 
     fn children(&self) -> Option<ASTChildIterator> {
-        let assignee = self.assignee.as_ast();
-        let value = self.value.as_ast();
-        Some(Box::new(vec![assignee, value].into_iter()))
+        let assignee = iter::once(self.assignee.as_ast());
+        let value = iter::once(self.value.as_ast());
+        let iter = assignee.chain(value);
+        Some(Box::new(iter))
     }
 }
 
@@ -43,8 +46,8 @@ impl ExprASTNode for AssignASTNode {}
 
 impl ValueExprASTNode for AssignASTNode {}
 
-impl std::fmt::Display for AssignASTNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for AssignASTNode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Assignment {}", self.span)
     }
 }

@@ -56,9 +56,10 @@ mod macros {
                 ast_defaults!();
 
                 fn children(&self) -> Option<ASTChildIterator> {
-                    let lhs = self.lhs.as_ast();
-                    let rhs = self.rhs.as_ast();
-                    Some(Box::new(vec![lhs, rhs].into_iter()))
+                    let lhs = iter::once(self.lhs.as_ast());
+                    let rhs = iter::once(self.rhs.as_ast());
+                    let iter = lhs.chain(rhs);
+                    Some(Box::new(iter))
                 }
             }
 
