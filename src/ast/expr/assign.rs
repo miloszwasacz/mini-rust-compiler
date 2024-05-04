@@ -29,6 +29,16 @@ impl AssignASTNode {
             span,
         }
     }
+
+    /// Returns the assignee.
+    pub fn assignee(&self) -> &dyn AssigneeExprASTNode {
+        self.assignee.as_ref()
+    }
+
+    /// Returns the value.
+    pub fn value(&self) -> &dyn ValueExprASTNode {
+        self.value.as_ref()
+    }
 }
 
 impl ASTNode for AssignASTNode {

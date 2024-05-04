@@ -61,6 +61,7 @@ impl StatementASTNode for ParamASTNode {}
 
 impl fmt::Display for ParamASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Variable {}", self.span)
+        let mutability = if self.is_mutable() { "Mut" } else { "" };
+        write!(f, "Param{} {}", mutability, self.span)
     }
 }

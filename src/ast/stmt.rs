@@ -3,7 +3,9 @@
 use crate::ast::ASTNode;
 
 pub use self::param::*;
+pub use self::r#let::*;
 
+pub mod r#let;
 pub mod param;
 
 /// A trait for all statement-related AST nodes.
