@@ -1,7 +1,7 @@
 //! Defines the AST for the μRust language.
 
 // TODO Create all the AST node types
-// - [ ] Crate
+// - [x] Crate
 //
 // Items:
 // - [x] Function (+ function prototype)
@@ -32,12 +32,14 @@
 // - [x] Unsafe block
 // - [x] Return
 
+pub use self::crt::*;
 pub use self::expr::*;
 pub use self::item::*;
 pub use self::node::*;
 pub use self::stmt::*;
 pub use self::types::*;
 
+mod crt;
 mod expr;
 mod item;
 mod stmt;
