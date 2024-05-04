@@ -1,9 +1,10 @@
 //! Defines the AST for the μRust language.
 
 // TODO Create all the AST node types
-// Declarations:
 // - [ ] Crate
-// - [ ] Function & function prototype
+//
+// Items:
+// - [x] Function (+ function prototype)
 // - [ ] Static item (i.e. a global variable)
 // - [ ] Extern block
 //
@@ -32,11 +33,13 @@
 // - [x] Return
 
 pub use self::expr::*;
+pub use self::item::*;
 pub use self::node::*;
 pub use self::stmt::*;
 pub use self::types::*;
 
 mod expr;
+mod item;
 mod stmt;
 mod types;
 
