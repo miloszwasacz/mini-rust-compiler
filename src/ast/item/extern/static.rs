@@ -2,14 +2,16 @@
 
 use std::fmt;
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, VarType};
+use crate::ast::{
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, TypeASTMetaNode,
+};
 use crate::token::Span;
 
 /// An AST node representing a static item.
 #[derive(Debug)]
 pub struct ExternStaticASTNode {
     assignee: Box<dyn AssigneeExprASTNode>,
-    ty: VarType,
+    ty: TypeASTMetaNode,
     mutable: bool,
     span: Span,
 }
@@ -18,7 +20,7 @@ impl ExternStaticASTNode {
     /// Creates a new `StaticASTNode` with the given assignee, type, mutability and span.
     pub fn new(
         assignee: Box<dyn AssigneeExprASTNode>,
-        ty: VarType,
+        ty: TypeASTMetaNode,
         mutable: bool,
         span: Span,
     ) -> ExternStaticASTNode {
@@ -31,7 +33,7 @@ impl ExternStaticASTNode {
     }
 
     /// Returns the type.
-    pub fn ty(&self) -> VarType {
+    pub fn ty(&self) -> TypeASTMetaNode {
         self.ty
     }
 

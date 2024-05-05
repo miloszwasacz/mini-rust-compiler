@@ -3,7 +3,8 @@
 use std::{fmt, iter};
 
 use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, StatementASTNode, VarType,
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, StatementASTNode,
+    TypeASTMetaNode,
 };
 use crate::token::Span;
 
@@ -11,7 +12,7 @@ use crate::token::Span;
 #[derive(Debug)]
 pub struct ParamASTNode {
     assignee: Box<dyn AssigneeExprASTNode>,
-    ty: VarType,
+    ty: TypeASTMetaNode,
     mutable: bool,
     span: Span,
 }
@@ -20,7 +21,7 @@ impl ParamASTNode {
     /// Creates a new `ParamASTNode` with the given assignee, type, mutability and span.
     pub fn new(
         assignee: Box<dyn AssigneeExprASTNode>,
-        ty: VarType,
+        ty: TypeASTMetaNode,
         mutable: bool,
         span: Span,
     ) -> ParamASTNode {
@@ -38,7 +39,7 @@ impl ParamASTNode {
     }
 
     /// Returns the type.
-    pub fn ty(&self) -> VarType {
+    pub fn ty(&self) -> TypeASTMetaNode {
         self.ty
     }
 

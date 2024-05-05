@@ -3,7 +3,7 @@
 use std::{fmt, iter};
 
 use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, ValueExprASTNode, VarType,
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, TypeASTMetaNode, ValueExprASTNode,
 };
 use crate::token::Span;
 
@@ -11,13 +11,13 @@ use crate::token::Span;
 #[derive(Debug)]
 pub struct TypeCastASTNode {
     value: Box<dyn ExprASTNode>,
-    ty: VarType,
+    ty: TypeASTMetaNode,
     span: Span,
 }
 
 impl TypeCastASTNode {
     /// Creates a new `TypeCastASTNode` with the given value, type and span.
-    pub fn new(value: Box<dyn ExprASTNode>, ty: VarType, span: Span) -> TypeCastASTNode {
+    pub fn new(value: Box<dyn ExprASTNode>, ty: TypeASTMetaNode, span: Span) -> TypeCastASTNode {
         TypeCastASTNode { value, ty, span }
     }
 }

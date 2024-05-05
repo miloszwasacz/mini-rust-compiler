@@ -3,7 +3,7 @@
 use std::fmt;
 use std::rc::Rc;
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ParamASTNode, VarType};
+use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ParamASTNode, TypeASTMetaNode};
 use crate::token::Span;
 
 /// An AST node representing a function prototype.
@@ -11,7 +11,7 @@ use crate::token::Span;
 pub struct FuncProtoASTNode {
     name: Rc<str>,
     params: Vec<ParamASTNode>,
-    return_type: VarType,
+    return_type: TypeASTMetaNode,
     span: Span,
 }
 
@@ -20,7 +20,7 @@ impl FuncProtoASTNode {
     pub fn new(
         name: Rc<str>,
         params: Vec<ParamASTNode>,
-        return_type: VarType,
+        return_type: TypeASTMetaNode,
         span: Span,
     ) -> FuncProtoASTNode {
         FuncProtoASTNode {
@@ -37,7 +37,7 @@ impl FuncProtoASTNode {
     }
 
     /// Returns the return type.
-    pub fn return_type(&self) -> VarType {
+    pub fn return_type(&self) -> TypeASTMetaNode {
         self.return_type
     }
 }

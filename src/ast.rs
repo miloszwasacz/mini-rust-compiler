@@ -40,14 +40,15 @@ pub use self::crt::*;
 pub use self::expr::*;
 pub use self::item::*;
 use self::node::*;
+pub use self::node::{ASTChildIterator, ASTNode};
+pub use self::r#type::*;
 pub use self::stmt::*;
-pub use self::types::*;
 
 mod crt;
 mod expr;
 mod item;
 mod stmt;
-mod types;
+mod r#type;
 
 /// The AST for the μRust language.
 #[derive(Debug)]
