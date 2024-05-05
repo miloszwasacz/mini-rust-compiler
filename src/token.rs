@@ -123,6 +123,9 @@ pub enum TokenType {
     //#endregion
 
     //#endregion
+    
+    /// Represents the end of the file
+    EOF,
 }
 
 impl TokenType {
@@ -211,23 +214,33 @@ impl Token {
     /// let start = Position::new_at(1, 1);
     /// let end = Position::new_at(1, 2);
     /// let tok = Token::new(TokenType::Plus, start, end);
-    /// assert_eq!(tok.get_type(), &TokenType::Plus);
-    /// assert_eq!(tok.get_span().start(), start);
-    /// assert_eq!(tok.get_span().end(), end);
+    /// assert_eq!(tok.ty(), &TokenType::Plus);
+    /// assert_eq!(tok.span().start(), start);
+    /// assert_eq!(tok.span().end(), end);
     /// ```
     pub fn new(token_type: TokenType, start: Position, end: Position) -> Token {
         let span = Span::new(start, end);
         Token { token_type, span }
     }
 
+    /// Creates a new [Token] that represents the end of the file.
+    pub fn eof(pos: Position) -> Token {
+        Token::new(TokenType::EOF, pos, pos)
+    }
+
     /// Returns the [TokenType] of this [Token].
-    pub fn get_type(&self) -> &TokenType {
+    pub fn ty(&self) -> &TokenType {
         &self.token_type
     }
 
     /// Returns the [Span] of this [Token].
-    pub fn get_span(&self) -> Span {
+    pub fn span(&self) -> Span {
         self.span
+    }
+
+    /// Whether this [Token] is the end of the file.
+    pub fn is_eof(&self) -> bool {
+        self.token_type == TokenType::EOF
     }
 }
 
