@@ -16,7 +16,10 @@ FunctionParameters -> FunctionParam FunctionParameters'
 FunctionParameters' -> "," FunctionParameters
                      | ε
 
-FunctionParam -> ident ":" Type
+FunctionParam -> Mut' FunctionParam'
+FunctionParam' -> ident FunctionParam''
+                | UnderscoreExpression FunctionParam''
+FunctionParam'' -> ":" Type
 
 FunctionReturnType -> "->" Type
                     | ε
