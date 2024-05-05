@@ -233,6 +233,11 @@ impl Token {
         &self.token_type
     }
 
+    /// Consumes the [Token] and returns its [TokenType].
+    pub fn into_ty(self) -> TokenType {
+        self.token_type
+    }
+
     /// Returns the [Span] of this [Token].
     pub fn span(&self) -> Span {
         self.span

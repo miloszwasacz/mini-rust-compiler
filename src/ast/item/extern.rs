@@ -28,12 +28,8 @@ pub enum ExternItem {
 
 impl ExternASTNode {
     /// Creates a new `ExternASTNode` with the given ABI, items and span.
-    pub fn new(abi: &str, items: Vec<ExternItem>, span: Span) -> ExternASTNode {
-        ExternASTNode {
-            abi: abi.to_string(),
-            items,
-            span,
-        }
+    pub fn new(abi: String, items: Vec<ExternItem>, span: Span) -> ExternASTNode {
+        ExternASTNode { abi, items, span }
     }
 
     /// Returns the used ABI.

@@ -1,7 +1,7 @@
 //! A module containing Path AST node implementation.
 
 use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode,
+    as_ast, AssigneeExprASTNode, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode,
     PlaceExprASTNode, ValueExprASTNode,
 };
 use crate::token::Span;
@@ -15,11 +15,8 @@ pub struct PathASTNode {
 
 impl PathASTNode {
     /// Creates a new `PathASTNode` with the given path and span.
-    pub fn new(path: &str, span: Span) -> PathASTNode {
-        PathASTNode {
-            path: path.to_string(),
-            span,
-        }
+    pub fn new(path: String, span: Span) -> PathASTNode {
+        PathASTNode { path, span }
     }
 
     /// Returns the path.

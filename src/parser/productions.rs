@@ -2,10 +2,10 @@
 
 use fallible_iterator::FallibleIterator;
 
-use crate::ast::CrateASTNode;
-use crate::parser::error::ParserError;
+use crate::ast::{CrateASTNode, ItemASTNode};
 use crate::parser::{Parser, Result};
-use crate::token::Token;
+use crate::parser::error::ParserError;
+use crate::token::{Position, Span, Token};
 
 impl Parser {
     /// Consumes the next token from the lexer.
@@ -28,7 +28,21 @@ impl Parser {
 
     //TODO Improve documentation
     /// Parses the input file into a `CrateASTNode`, consuming the `Parser`.
-    pub(super) fn into_crate_ast(self) -> Result<CrateASTNode> {
+    pub(super) fn into_crate_ast(mut self) -> Result<CrateASTNode> {
+        let items = self.parse_items()?;
+
+        let end_pos = match self.consume() {
+            Ok(t) if t.is_eof() => t.span().end(),
+            Ok(t) => panic!("Unexpected token: {:?} - expected EOF.", t.ty()),
+            Err(e) => panic!("No finishing EOF token found.\nError: {}", e),
+        };
+        let span = Span::new(Position::new(), end_pos);
+
+        let Parser { filename, .. } = self;
+        Ok(CrateASTNode::new(filename, items, span))
+    }
+
+    fn parse_items(&mut self) -> Result<Vec<ItemASTNode>> {
         unimplemented!()
     }
 

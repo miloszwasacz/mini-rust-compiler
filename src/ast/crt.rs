@@ -15,12 +15,8 @@ pub struct CrateASTNode {
 
 impl CrateASTNode {
     /// Creates a new `CrateASTNode` with the given name, items and span.
-    pub fn new(name: &str, items: Vec<ItemASTNode>, span: Span) -> CrateASTNode {
-        CrateASTNode {
-            name: name.to_string(),
-            items,
-            span,
-        }
+    pub fn new(name: String, items: Vec<ItemASTNode>, span: Span) -> CrateASTNode {
+        CrateASTNode { name, items, span }
     }
 
     /// Returns the name of the crate.
