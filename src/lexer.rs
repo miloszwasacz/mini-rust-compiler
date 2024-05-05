@@ -4,6 +4,7 @@ use std::io;
 use std::iter::Peekable;
 use std::path::Path;
 
+use fallible_iterator::FallibleIterator;
 use unicode_ident::{is_xid_continue, is_xid_start};
 
 use crate::token::{Position, Span, Token, TokenType};
@@ -198,14 +199,11 @@ impl Lexer {
     }
 }
 
-impl Iterator for Lexer {
-    type Item = Result<Token>;
+impl FallibleIterator for Lexer {
+    type Item = Token;
+    type Error = LexerError;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.next_token() {
-            Ok(Some(token)) => Some(Ok(token)),
-            Ok(None) => None,
-            Err(err) => Some(Err(err)),
-        }
+    fn next(&mut self) -> std::result::Result<Option<Self::Item>, Self::Error> {
+        self.next_token()
     }
 }

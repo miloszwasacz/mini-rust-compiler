@@ -10,5 +10,6 @@ path = "src/lib.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+fallible-iterator = "0.3"
 unicode-ident = "1.0"
 debug_tree = "0.4"
