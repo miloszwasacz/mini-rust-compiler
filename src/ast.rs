@@ -33,10 +33,13 @@
 // - [x] Unsafe block
 // - [x] Return
 
+use std::fmt;
+use std::fmt::Debug;
+
 pub use self::crt::*;
 pub use self::expr::*;
 pub use self::item::*;
-pub use self::node::*;
+use self::node::*;
 pub use self::stmt::*;
 pub use self::types::*;
 
@@ -46,6 +49,26 @@ mod item;
 mod stmt;
 mod types;
 
+/// The AST for the μRust language.
+#[derive(Debug)]
+pub struct Crate {
+    root: Box<CrateASTNode>,
+}
+
+impl Crate {
+    /// Creates a new `Crate` with the given root node.
+    pub fn new(root: Box<CrateASTNode>) -> Crate {
+        Crate { root }
+    }
+}
+
+impl fmt::Display for Crate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self.root.as_ref(), f)
+    }
+}
+
+/// A submodule containing the common AST node interface and utilities.
 mod node {
     use std::fmt;
 
