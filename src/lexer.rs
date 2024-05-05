@@ -3,6 +3,7 @@
 use std::io;
 use std::iter::Peekable;
 use std::path::Path;
+use std::rc::Rc;
 
 use fallible_iterator::FallibleIterator;
 use unicode_ident::{is_xid_continue, is_xid_start};
@@ -68,7 +69,7 @@ pub type Result<T> = std::result::Result<T, LexerError>;
 /// }
 /// ```
 pub struct Lexer {
-    filename: String,
+    filename: Rc<str>,
     position: Position,
     iter: Peekable<FileReaderIter>,
     finished: bool,
@@ -81,7 +82,7 @@ impl Lexer {
         let filename = helper::filename_from_path(&path)?;
         let iter = FileReader::new(path).try_iter()?.peekable();
         Ok(Lexer {
-            filename,
+            filename: filename.into(),
             position: Position::new(),
             iter,
             finished: false,
@@ -89,8 +90,13 @@ impl Lexer {
     }
 
     /// Returns the name of the file being lexed.
-    pub fn filename(&self) -> &str {
+    pub fn get_filename(&self) -> &str {
         &self.filename
+    }
+
+    /// Returns a new strong reference the name of the file being lexed.
+    pub fn get_filename_owned(&self) -> Rc<str> {
+        self.filename.clone()
     }
 
     //TODO Add tests
@@ -167,7 +173,7 @@ impl Lexer {
                 }
 
                 let float_val = num_str.parse::<f64>().map_err(|_| {
-                    let err_kind = LexerErrorKind::InvalidFloatLiteral(num_str);
+                    let err_kind = LexerErrorKind::InvalidFloatLiteral(num_str.into_boxed_str());
                     LexerError::new(err_kind, Span::new(start_pos, self.position))
                 })?;
 
@@ -175,7 +181,7 @@ impl Lexer {
             } else {
                 // Integer literal
                 let int_val = num_str.parse::<i32>().map_err(|_| {
-                    let err_kind = LexerErrorKind::InvalidIntLiteral(num_str);
+                    let err_kind = LexerErrorKind::InvalidIntLiteral(num_str.into_boxed_str());
                     LexerError::new(err_kind, Span::new(start_pos, self.position))
                 })?;
 
@@ -202,7 +208,7 @@ impl Lexer {
             self.position.col_inc();
 
             return Ok(Token::new(
-                TokenType::Abi(str_lit),
+                TokenType::Abi(str_lit.into()),
                 start_pos,
                 self.position,
             ));
@@ -218,7 +224,7 @@ impl Lexer {
             }
 
             let tt = TokenType::extract_keyword_or_symbol(id_str.as_str())
-                .unwrap_or(TokenType::Ident(id_str));
+                .unwrap_or(TokenType::Ident(id_str.into()));
 
             return Ok(Token::new(tt, start_pos, self.position));
         }

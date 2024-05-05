@@ -1,6 +1,7 @@
 //! A module containing the Function Prototype AST node implementation.
 
 use std::fmt;
+use std::rc::Rc;
 
 use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ParamASTNode, VarType};
 use crate::token::Span;
@@ -8,7 +9,7 @@ use crate::token::Span;
 /// An AST node representing a function prototype.
 #[derive(Debug)]
 pub struct FuncProtoASTNode {
-    name: String,
+    name: Rc<str>,
     params: Vec<ParamASTNode>,
     return_type: VarType,
     span: Span,
@@ -17,7 +18,7 @@ pub struct FuncProtoASTNode {
 impl FuncProtoASTNode {
     /// Creates a new `FuncProtoASTNode` with the given name, parameters, return type and span.
     pub fn new(
-        name: String,
+        name: Rc<str>,
         params: Vec<ParamASTNode>,
         return_type: VarType,
         span: Span,

@@ -1,7 +1,9 @@
 //! A module containing Path AST node implementation.
 
+use std::rc::Rc;
+
 use crate::ast::{
-    as_ast, AssigneeExprASTNode, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode,
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode,
     PlaceExprASTNode, ValueExprASTNode,
 };
 use crate::token::Span;
@@ -9,13 +11,13 @@ use crate::token::Span;
 /// An AST node representing a path (i.e. a variable or item).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PathASTNode {
-    path: String,
+    path: Rc<str>,
     span: Span,
 }
 
 impl PathASTNode {
     /// Creates a new `PathASTNode` with the given path and span.
-    pub fn new(path: String, span: Span) -> PathASTNode {
+    pub fn new(path: Rc<str>, span: Span) -> PathASTNode {
         PathASTNode { path, span }
     }
 

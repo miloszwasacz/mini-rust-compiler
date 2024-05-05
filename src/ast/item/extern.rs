@@ -1,6 +1,7 @@
 //! A module containing the Extern Block AST node implementation.
 
 use std::fmt;
+use std::rc::Rc;
 
 use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, FuncProtoASTNode};
 use crate::token::Span;
@@ -12,7 +13,7 @@ mod r#static;
 /// An AST node representing an extern block.
 #[derive(Debug)]
 pub struct ExternASTNode {
-    abi: String,
+    abi: Rc<str>,
     items: Vec<ExternItem>,
     span: Span,
 }
@@ -28,7 +29,7 @@ pub enum ExternItem {
 
 impl ExternASTNode {
     /// Creates a new `ExternASTNode` with the given ABI, items and span.
-    pub fn new(abi: String, items: Vec<ExternItem>, span: Span) -> ExternASTNode {
+    pub fn new(abi: Rc<str>, items: Vec<ExternItem>, span: Span) -> ExternASTNode {
         ExternASTNode { abi, items, span }
     }
 

@@ -2,6 +2,7 @@
 
 use std::io;
 use std::path::Path;
+use std::rc::Rc;
 
 use fallible_iterator::{FallibleIterator, Peekable};
 
@@ -20,14 +21,14 @@ pub type Result<T> = std::result::Result<T, ParserError>;
 /// The parser for the μRust compiler.
 pub struct Parser {
     lexer: Peekable<Lexer>,
-    filename: String,
+    filename: Rc<str>,
 }
 
 impl Parser {
     /// Creates a new `Parser` that will parse the file at the given path.
     pub fn new<P: AsRef<Path>>(path: P) -> io::Result<Parser> {
         let lexer = Lexer::new(path)?;
-        let filename = lexer.filename().to_string();
+        let filename = lexer.get_filename_owned();
         Ok(Parser {
             lexer: lexer.peekable(),
             filename,
@@ -41,7 +42,7 @@ impl Parser {
 
     /// Parses the input file and returns `ast::Crate`
     pub fn parse(self) -> Result<Crate> {
-        let root = self.into_crate_ast()?;
+        let root = self.parse_crate()?;
         let root = Box::new(root);
         Ok(Crate::new(root))
     }

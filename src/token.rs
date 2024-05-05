@@ -1,6 +1,7 @@
 //! Defines the different types of tokens that can be found in a μRust program.
 
 use std::fmt;
+use std::rc::Rc;
 
 pub use span::*;
 
@@ -13,11 +14,11 @@ mod span;
 pub enum TokenType {
     //#region Patterns
     /// Matches a valid UTF-8 identifier
-    Ident(String),
+    Ident(Rc<str>),
     /// `_`
     Underscore,
     /// Only `"C"` ABI is valid at this point
-    Abi(String),
+    Abi(Rc<str>),
     //#endregion
 
     //#region Keywords
@@ -231,11 +232,6 @@ impl Token {
     /// Returns the [TokenType] of this [Token].
     pub fn ty(&self) -> &TokenType {
         &self.token_type
-    }
-
-    /// Consumes the [Token] and returns its [TokenType].
-    pub fn into_ty(self) -> TokenType {
-        self.token_type
     }
 
     /// Returns the [Span] of this [Token].

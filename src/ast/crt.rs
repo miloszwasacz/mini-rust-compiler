@@ -1,6 +1,7 @@
 //! A module containing the Crate AST node implementation.
 
 use std::fmt;
+use std::rc::Rc;
 
 use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ItemASTNode};
 use crate::token::Span;
@@ -8,14 +9,14 @@ use crate::token::Span;
 /// An AST node representing a crate.
 #[derive(Debug)]
 pub struct CrateASTNode {
-    name: String,
+    name: Rc<str>,
     items: Vec<ItemASTNode>,
     span: Span,
 }
 
 impl CrateASTNode {
     /// Creates a new `CrateASTNode` with the given name, items and span.
-    pub fn new(name: String, items: Vec<ItemASTNode>, span: Span) -> CrateASTNode {
+    pub fn new(name: Rc<str>, items: Vec<ItemASTNode>, span: Span) -> CrateASTNode {
         CrateASTNode { name, items, span }
     }
 

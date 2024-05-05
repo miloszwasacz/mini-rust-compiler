@@ -9,9 +9,9 @@ use crate::token::Span;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LexerErrorKind {
     /// The integer literal has an invalid format.
-    InvalidIntLiteral(String),
+    InvalidIntLiteral(Box<str>),
     /// The float literal has an invalid format.
-    InvalidFloatLiteral(String),
+    InvalidFloatLiteral(Box<str>),
     /// The string literal is not terminated (i.e. it is missing a closing quote).
     UnterminatedStringLiteral,
     /// An unknown token was encountered.

@@ -28,7 +28,7 @@ impl Parser {
 
     //TODO Improve documentation
     /// Parses the input file into a `CrateASTNode`, consuming the `Parser`.
-    pub(super) fn into_crate_ast(mut self) -> Result<CrateASTNode> {
+    pub(super) fn parse_crate(mut self) -> Result<CrateASTNode> {
         let items = self.parse_items()?;
 
         let end_pos = match self.consume() {
@@ -37,9 +37,9 @@ impl Parser {
             Err(e) => panic!("No finishing EOF token found.\nError: {}", e),
         };
         let span = Span::new(Position::new(), end_pos);
+        let name = self.filename.clone();
 
-        let Parser { filename, .. } = self;
-        Ok(CrateASTNode::new(filename, items, span))
+        Ok(CrateASTNode::new(name, items, span))
     }
 
     fn parse_items(&mut self) -> Result<Vec<ItemASTNode>> {
