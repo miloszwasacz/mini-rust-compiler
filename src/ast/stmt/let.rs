@@ -1,39 +1,45 @@
 //! A module containing the Let Statement AST node implementation.
 
-use std::fmt;
+use std::{fmt, iter};
 
 use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssignASTNode, AssigneeExprASTNode,
-    ValueExprASTNode,
+    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ValueExprASTNode,
 };
 use crate::token::Span;
 
 /// An AST node representing a let statement.
 #[derive(Debug)]
 pub struct LetASTNode {
-    assignment: Box<AssignASTNode>,
+    decl: Box<dyn AssigneeExprASTNode>,
+    value: Option<Box<dyn ValueExprASTNode>>,
     mutable: bool,
     span: Span,
 }
 
 impl LetASTNode {
-    /// Creates a new `LetASTNode` with the given assignment, mutability and span.
-    pub fn new(assignment: Box<AssignASTNode>, mutable: bool, span: Span) -> LetASTNode {
+    /// Creates a new `LetASTNode` with the given declaration, mutability and span.
+    pub fn new(decl: Box<dyn AssigneeExprASTNode>, mutable: bool, span: Span) -> LetASTNode {
         LetASTNode {
-            assignment,
+            decl,
+            value: None,
             mutable,
             span,
         }
     }
 
-    /// Returns the assignee.
-    pub fn assignee(&self) -> &dyn AssigneeExprASTNode {
-        self.assignment.assignee()
-    }
-
-    /// Returns the value.
-    pub fn value(&self) -> &dyn ValueExprASTNode {
-        self.assignment.value()
+    /// Creates a new `LetASTNode` with the given declaration, assigned value, mutability and span.
+    pub fn new_with_assignment(
+        decl: Box<dyn AssigneeExprASTNode>,
+        value: Box<dyn ValueExprASTNode>,
+        mutable: bool,
+        span: Span,
+    ) -> LetASTNode {
+        LetASTNode {
+            decl,
+            value: Some(value),
+            mutable,
+            span,
+        }
     }
 
     /// Returns whether the variable is mutable.
@@ -46,7 +52,10 @@ impl ASTNode for LetASTNode {
     ast_defaults!();
 
     fn children(&self) -> Option<ASTChildIterator> {
-        self.assignment.children()
+        let decl = iter::once(self.decl.as_ast());
+        let value = self.value.iter().map(|v| v.as_ast());
+        let iter = decl.chain(value);
+        Some(Box::new(iter))
     }
 }
 
