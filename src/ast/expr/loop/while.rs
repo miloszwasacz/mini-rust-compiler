@@ -3,14 +3,16 @@
 use std::{fmt, iter};
 
 use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, BlockASTNode, ExprASTNode, ValueExprASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, BlockASTNode, ExprASTNode, ExpressionBox,
+    ValueExprASTNode,
 };
 use crate::token::Span;
 
 /// An AST node representing a while loop expression.
 #[derive(Debug)]
 pub struct WhileASTNode {
-    condition: Box<dyn ExprASTNode>,
+    /// The condition can be [any expression](ExpressionBox::Unspecified).
+    condition: Box<ExpressionBox>,
     block: Box<BlockASTNode>,
     span: Span,
 }
@@ -18,7 +20,7 @@ pub struct WhileASTNode {
 impl WhileASTNode {
     /// Creates a new `WhileASTNode` with the given condition, block and span.
     pub fn new(
-        condition: Box<dyn ExprASTNode>,
+        condition: Box<ExpressionBox>,
         block: Box<BlockASTNode>,
         span: Span,
     ) -> WhileASTNode {

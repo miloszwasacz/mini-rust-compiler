@@ -3,7 +3,9 @@
 use std::fmt;
 use std::rc::Rc;
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ParamASTNode, TypeASTMetaNode};
+use crate::ast::{
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ParamASTNode, TypeASTMetaNode,
+};
 use crate::token::Span;
 
 /// An AST node representing a function prototype.

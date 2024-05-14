@@ -48,10 +48,6 @@ impl ASTNode for ItemASTNode {
         delegate_ast!(&self, children,)
     }
 
-    fn as_ast(&self) -> &dyn ASTNode {
-        delegate_ast!(&self, as_ast,)
-    }
-
     fn add_to_tree_string(&self, builder: &mut TreeBuilder) {
         delegate_ast!(&self, add_to_tree_string, builder)
     }

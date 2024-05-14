@@ -30,8 +30,10 @@ mod macros {
             $( #[$doc] )*
             pub struct $name {
                 operator: $operator,
-                lhs: Box<dyn ExprASTNode>,
-                rhs: Box<dyn ExprASTNode>,
+                /// The left-hand side of the operator can be [any expression](ExpressionBox::Unspecified).
+                lhs: Box<ExpressionBox>,
+                /// The right-hand side of the operator can be [any expression](ExpressionBox::Unspecified).
+                rhs: Box<ExpressionBox>,
                 span: Span,
             }
 
@@ -39,8 +41,8 @@ mod macros {
                 #[doc = concat!("Creates a new `", stringify!($name), "` with the given operator, lhs, rhs and span.")]
                 pub fn new(
                     operator: $operator,
-                    lhs: Box<dyn ExprASTNode>,
-                    rhs: Box<dyn ExprASTNode>,
+                    lhs: Box<ExpressionBox>,
+                    rhs: Box<ExpressionBox>,
                     span: Span,
                 ) -> $name {
                     $name {

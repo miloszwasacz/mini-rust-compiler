@@ -3,9 +3,9 @@
 use fallible_iterator::FallibleIterator;
 
 use crate::ast::{
-    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExternASTNode, FuncASTNode,
-    FuncProtoASTNode, ItemASTNode, ParamASTNode, PathASTNode, StaticASTNode, Type, TypeASTMetaNode,
-    UnderscoreASTNode,
+    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExprASTNode, ExpressionBox,
+    ExternASTNode, FuncASTNode, FuncProtoASTNode, ItemASTNode, ParamASTNode, PathASTNode,
+    StaticASTNode, Type, TypeASTMetaNode, UnderscoreASTNode,
 };
 use crate::parser::error::ParserError;
 use crate::parser::{Parser, Result};
@@ -155,7 +155,31 @@ impl Parser {
     }
 
     fn parse_static(&mut self) -> Result<StaticASTNode> {
-        unimplemented!()
+        let start_pos = assert_token!(self, Static).start();
+
+        let token = self.consume()?;
+        let (mutability, ident) = match token.ty() {
+            Mut => {
+                let ident = assert_ident!(self);
+                (true, ident)
+            }
+            Ident(ident) => (false, ident.clone()),
+            _ => return unknown_token!(self, token),
+        };
+
+        assert_token!(self, Colon);
+
+        let ty = self.parse_type()?;
+        let value = self.parse_item_assignment()?;
+
+        let end_pos = assert_token!(self, Semi).end();
+        let span = Span::new(start_pos, end_pos);
+
+        let item = match value {
+            Some(value) => StaticASTNode::new_with_assignment(ident, value, ty, mutability, span),
+            None => StaticASTNode::new(ident, ty, mutability, span),
+        };
+        Ok(item)
     }
 
     fn parse_extern(&mut self) -> Result<ExternASTNode> {
@@ -224,6 +248,28 @@ impl Parser {
     }
 
     fn parse_block_expr(&mut self) -> Result<BlockASTNode> {
+        unimplemented!()
+    }
+
+    fn parse_item_assignment(&mut self) -> Result<Option<ExpressionBox>> {
+        let next = self.peek()?;
+
+        let expr = match next.ty() {
+            Assign => {
+                self.consume().expect("Assign token should be present.");
+                self.parse_expr()?
+            }
+            Semi => return Ok(None),
+            _ => return unknown_token!(self),
+        };
+
+        //TODO How to determine if the expression is a value expression?
+
+        // Maybe refactor grammar to be more explicit what kind of expression is expected in certain places.
+        unimplemented!()
+    }
+
+    fn parse_expr(&mut self) -> Result<Box<dyn ExprASTNode>> {
         unimplemented!()
     }
 

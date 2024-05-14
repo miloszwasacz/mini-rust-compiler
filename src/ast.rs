@@ -2,36 +2,36 @@
 
 // Available AST nodes:
 //
-// - [x] Crate
+// - Crate
 //
 // Items:
-// - [x] Function (+ function prototype)
-// - [x] Static item (i.e. a global variable)
-// - [x] Extern block
+// - Function (+ function prototype)
+// - Static item (i.e. a global variable)
+// - Extern block
 //
 // Statements:
-// - [x] Let statement
-// - [x] Function parameter
-// - [x] Expression statement
+// - Let statement
+// - Function parameter
+// - Expression statement
 //
 // Expressions:
-// - [x] Block
-// - [x] Literal
-// - [x] Variable & underscore expression
-// - [x] Function call
-// - [x] Assignment
-// - [x] Operator
-//   - [x] Arithmetic or logical
-//   - [x] Comparison
-//   - [x] Negation
-//   - [x] Lazy boolean
-// - [x] Type cast
-// - [x] Loop
-//   - [x] Infinite loop
-//   - [x] While loop
-// - [x] If
-// - [x] Unsafe block
-// - [x] Return
+// - Block
+// - Literal
+// - Variable & underscore expression
+// - Function call
+// - Assignment
+// - Operator
+//   - Arithmetic or logical
+//   - Comparison
+//   - Negation
+//   - Lazy boolean
+// - Type cast
+// - Loop
+//   - Infinite loop
+//   - While loop
+// - If
+// - Unsafe block
+// - Return
 
 use std::fmt;
 use std::fmt::Debug;
@@ -40,11 +40,12 @@ pub use self::crt::*;
 pub use self::expr::*;
 pub use self::item::*;
 use self::node::*;
-pub use self::node::{ASTChildIterator, ASTNode};
+pub use self::node::{ASTChildIterator, ASTNode, AsASTNode};
 pub use self::r#type::*;
 pub use self::stmt::*;
 
 mod crt;
+pub mod error;
 mod expr;
 mod item;
 mod stmt;
@@ -82,15 +83,12 @@ mod node {
 
     //TODO Add examples to all the doc comments.
     /// A trait defining the common interface for all AST nodes.
-    pub trait ASTNode: fmt::Debug + fmt::Display {
+    pub trait ASTNode: AsASTNode + fmt::Debug + fmt::Display {
         /// Returns the span that defines the location of this AST node.
         fn span(&self) -> Span;
 
         /// Returns an iterator over the children of this AST node, if any.
         fn children(&self) -> Option<ASTChildIterator>;
-
-        /// Returns a reference to this AST node as a `dyn ASTNode`.
-        fn as_ast(&self) -> &dyn ASTNode;
 
         /// Adds this AST node to the given tree builder.
         ///
@@ -117,48 +115,21 @@ mod node {
         }
     }
 
-    /// A macro that can be used as a shorthand for implementing [ASTNode::as_ast].
+    /// An auto-trait for converting a type into a reference to a `dyn ASTNode`.
     ///
-    /// # Example
-    /// ```ignore
-    /// use debug_tree::TreeBuilder;
-    /// use crate::ast::{ASTNode, ASTChildIterator};
-    /// use crate::ast::as_ast;
-    /// use crate::token::Span;
-    ///
-    /// struct MyNode {
-    ///     // ...
-    /// }
-    ///     
-    /// impl ASTNode for MyNode {
-    ///     fn span(&self) -> Span {
-    ///         // Your implementation for `span`.
-    /// #       unimplemented!()
-    ///     }
-    ///
-    ///     fn children(&self) -> Option<ASTChildIterator> {
-    ///         // Your implementation for `children`.
-    /// #       unimplemented!()
-    ///     }
-    ///
-    ///     as_ast!();
-    ///     
-    ///     fn add_to_tree_string(&self, builder: &mut TreeBuilder) {
-    ///         // Your implementation for `add_to_tree_string`
-    ///         // (or just use the trait's base implementation).
-    /// #       unimplemented!()
-    ///     }
-    /// }
-    /// ```
-    macro_rules! as_ast {
-        () => {
-            fn as_ast(&self) -> &dyn ASTNode {
-                self
-            }
-        };
+    /// It is automatically implemented for all types that implement [`ASTNode`].
+    pub trait AsASTNode {
+        /// Returns a reference to this AST node as a `dyn ASTNode`.
+        fn as_ast(&self) -> &dyn ASTNode;
     }
 
-    /// A macro that can be used as a shorthand for implementing [ASTNode::span] and [ASTNode::as_ast].
+    impl<T: ASTNode> AsASTNode for T {
+        fn as_ast(&self) -> &dyn ASTNode {
+            self
+        }
+    }
+
+    /// A macro that can be used as a shorthand for implementing [`ASTNode::span`].
     ///
     /// # Example
     /// ```ignore
@@ -188,11 +159,8 @@ mod node {
             fn span(&self) -> Span {
                 self.span
             }
-
-            as_ast!();
         };
     }
 
-    pub(super) use as_ast;
     pub(super) use ast_defaults;
 }

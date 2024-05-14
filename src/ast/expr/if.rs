@@ -3,14 +3,16 @@
 use std::{fmt, iter};
 
 use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, BlockASTNode, ExprASTNode, ValueExprASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, BlockASTNode, ExprASTNode, ExpressionBox,
+    ValueExprASTNode,
 };
 use crate::token::Span;
 
 /// An AST node representing an if expression.
 #[derive(Debug)]
 pub struct IfASTNode {
-    condition: Box<dyn ExprASTNode>,
+    /// The condition can be [any expression](ExpressionBox::Unspecified).
+    condition: Box<ExpressionBox>,
     then_block: Box<BlockASTNode>,
     else_block: Option<Box<BlockASTNode>>,
     span: Span,
@@ -19,7 +21,7 @@ pub struct IfASTNode {
 impl IfASTNode {
     /// Creates a new `IfASTNode` with the given condition, then block, else block and span.
     pub fn new(
-        condition: Box<dyn ExprASTNode>,
+        condition: Box<ExpressionBox>,
         then_block: Box<BlockASTNode>,
         else_block: Box<BlockASTNode>,
         span: Span,
@@ -34,7 +36,7 @@ impl IfASTNode {
 
     /// Creates a new `IfASTNode` with the given condition, then block and span.
     pub fn new_without_else(
-        condition: Box<dyn ExprASTNode>,
+        condition: Box<ExpressionBox>,
         then_block: Box<BlockASTNode>,
         span: Span,
     ) -> IfASTNode {

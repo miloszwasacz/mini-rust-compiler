@@ -4,7 +4,7 @@ use std::fmt;
 use std::rc::Rc;
 
 use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, FuncProtoASTNode, StaticASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, FuncProtoASTNode, StaticASTNode,
 };
 use crate::token::Span;
 

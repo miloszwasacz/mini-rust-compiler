@@ -2,9 +2,7 @@
 
 use std::fmt;
 
-use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode,
-};
+use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode};
 use crate::token::Span;
 
 /// An AST node representing an underscore.

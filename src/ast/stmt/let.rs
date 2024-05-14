@@ -2,9 +2,7 @@
 
 use std::{fmt, iter};
 
-use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ValueExprASTNode,
-};
+use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ValueExprASTNode};
 use crate::token::Span;
 
 /// An AST node representing a let statement.

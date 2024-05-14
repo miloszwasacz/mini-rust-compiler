@@ -3,7 +3,7 @@
 use std::fmt;
 use std::rc::Rc;
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, ItemASTNode};
+use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ItemASTNode};
 use crate::token::Span;
 
 /// An AST node representing a crate.

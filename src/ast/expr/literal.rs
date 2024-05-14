@@ -2,9 +2,7 @@
 
 use std::fmt;
 
-use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, Type, ValueExprASTNode,
-};
+use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, Type, ValueExprASTNode};
 use crate::token::Span;
 
 mod bool;

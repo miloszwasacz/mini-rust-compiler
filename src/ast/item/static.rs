@@ -4,7 +4,7 @@ use std::fmt;
 use std::rc::Rc;
 
 use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, TypeASTMetaNode, ValueExprASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ExpressionBox, TypeASTMetaNode,
 };
 use crate::token::Span;
 
@@ -12,7 +12,8 @@ use crate::token::Span;
 #[derive(Debug)]
 pub struct StaticASTNode {
     name: Rc<str>,
-    value: Option<Box<dyn ValueExprASTNode>>,
+    /// The value has to be a [value expression](ExpressionBox::Value).
+    value: Option<ExpressionBox>,
     ty: TypeASTMetaNode,
     mutable: bool,
     span: Span,
@@ -33,7 +34,7 @@ impl StaticASTNode {
     /// Creates a new `StaticASTNode` with the given name, assigned value, type, mutability and span.
     pub fn new_with_assignment(
         name: Rc<str>,
-        value: Box<dyn ValueExprASTNode>,
+        value: ExpressionBox,
         ty: TypeASTMetaNode,
         mutable: bool,
         span: Span,

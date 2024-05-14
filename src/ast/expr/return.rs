@@ -2,19 +2,20 @@
 
 use std::{fmt, iter};
 
-use crate::ast::{as_ast, ast_defaults, ASTNode, ExprASTNode, ValueExprASTNode};
+use crate::ast::{ast_defaults, ASTNode, AsASTNode, ExprASTNode, ExpressionBox, ValueExprASTNode};
 use crate::token::Span;
 
 /// An AST node representing a return expression.
 #[derive(Debug)]
 pub struct ReturnASTNode {
-    value: Box<dyn ExprASTNode>,
+    /// The return value can be [any expression](ExpressionBox::Unspecified).
+    value: ExpressionBox,
     span: Span,
 }
 
 impl ReturnASTNode {
     /// Creates a new `ReturnASTNode` with the given return value and span.
-    pub fn new(value: Box<dyn ExprASTNode>, span: Span) -> ReturnASTNode {
+    pub fn new(value: ExpressionBox, span: Span) -> ReturnASTNode {
         ReturnASTNode { value, span }
     }
 }

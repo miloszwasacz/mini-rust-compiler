@@ -2,7 +2,9 @@
 
 use std::{fmt, iter};
 
-use crate::ast::{as_ast, ast_defaults, ASTChildIterator, ASTNode, BlockASTNode, FuncProtoASTNode};
+use crate::ast::{
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, BlockASTNode, FuncProtoASTNode,
+};
 use crate::token::Span;
 
 /// An AST node for a function declaration.

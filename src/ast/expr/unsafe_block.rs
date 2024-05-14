@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::ast::{as_ast, ASTNode, BlockASTNode, ExprASTNode, ValueExprASTNode};
+use crate::ast::{ASTNode, BlockASTNode, ExprASTNode, ValueExprASTNode};
 use crate::token::Span;
 
 /// An AST node representing an unsafe block expression.
@@ -20,8 +20,6 @@ impl UnsafeBlockASTNode {
 }
 
 impl ASTNode for UnsafeBlockASTNode {
-    as_ast!();
-
     fn span(&self) -> Span {
         self.span
     }

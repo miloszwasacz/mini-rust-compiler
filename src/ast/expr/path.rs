@@ -3,8 +3,8 @@
 use std::rc::Rc;
 
 use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode,
-    PlaceExprASTNode, ValueExprASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
+    ValueExprASTNode,
 };
 use crate::token::Span;
 

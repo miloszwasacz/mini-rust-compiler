@@ -2,25 +2,28 @@
 
 use std::{fmt, iter};
 
+use crate::ast::error::SemanticError;
 use crate::ast::{
-    as_ast, ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode,
-    ValueExprASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, AssigneeExprASTNode, ExprASTNode,
+    ExpressionBox, ExpressionBoxKind, ValueExprASTNode,
 };
 use crate::token::Span;
 
 /// An AST node representing an assignment.
 #[derive(Debug)]
 pub struct AssignASTNode {
-    assignee: Box<dyn AssigneeExprASTNode>,
-    value: Box<dyn ValueExprASTNode>,
+    /// The assignee has to be an [assignee expression](ExpressionBox::Assignee).
+    assignee: Box<ExpressionBox>,
+    /// The value has to be a [value expression](ExpressionBox::Value).
+    value: Box<ExpressionBox>,
     span: Span,
 }
 
 impl AssignASTNode {
     /// Creates a new `AssignASTNode` with the given assignee, value and span.
     pub fn new(
-        assignee: Box<dyn AssigneeExprASTNode>,
-        value: Box<dyn ValueExprASTNode>,
+        assignee: Box<ExpressionBox>,
+        value: Box<ExpressionBox>,
         span: Span,
     ) -> AssignASTNode {
         AssignASTNode {
@@ -31,13 +34,35 @@ impl AssignASTNode {
     }
 
     /// Returns the assignee.
-    pub fn assignee(&self) -> &dyn AssigneeExprASTNode {
-        self.assignee.as_ref()
+    ///
+    /// # Errors
+    /// Returns a [`SemanticError::WrongExpressionKind`] if the assignee
+    /// is not an [assignee expression](ExpressionBox::Assignee).
+    pub fn assignee(&self) -> Result<&dyn AssigneeExprASTNode, SemanticError> {
+        match self.assignee.as_ref() {
+            ExpressionBox::Assignee(expr) => Ok(expr.as_ref()),
+            _ => Err(SemanticError::WrongExpressionKind {
+                expected: ExpressionBoxKind::Assignee,
+                actual: self.assignee.kind(),
+                span: self.assignee.span(),
+            }),
+        }
     }
 
     /// Returns the value.
-    pub fn value(&self) -> &dyn ValueExprASTNode {
-        self.value.as_ref()
+    ///
+    /// # Errors
+    /// Returns a [`SemanticError::WrongExpressionKind`] if the value
+    /// is not a [value expression](ExpressionBox::Value).
+    pub fn value(&self) -> Result<&dyn ValueExprASTNode, SemanticError> {
+        match self.value.as_ref() {
+            ExpressionBox::Value(expr) => Ok(expr.as_ref()),
+            _ => Err(SemanticError::WrongExpressionKind {
+                expected: ExpressionBoxKind::Value,
+                actual: self.value.kind(),
+                span: self.value.span(),
+            }),
+        }
     }
 }
 
