@@ -15,4 +15,21 @@ pub enum SemanticError {
         /// The span of the expression.
         span: Span,
     },
+    /// An error that occurs when a static item is declared without an initializer.
+    StaticWithoutInitializer {
+        /// The span of the static item.
+        span: Span,
+    },
+    /// An error that occurs when a static item is declared with an initializer
+    /// in an extern block.
+    ExternStaticWithInitializer {
+        /// The span of the static item initializer.
+        span: Span,
+    },
+    /// An error that occurs when a function is declared with a body
+    /// in an extern block.
+    ExternFunctionWithBody {
+        /// The span of the function body.
+        span: Span,
+    },
 }

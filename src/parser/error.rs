@@ -2,6 +2,7 @@
 
 use std::error::Error;
 use std::fmt;
+use std::rc::Rc;
 
 use crate::lexer::error::LexerError;
 use crate::token::Token;
@@ -15,6 +16,8 @@ pub enum ParserError {
     UnexpectedEOF,
     /// An unexpected token was encountered.
     UnexpectedToken(Token),
+    /// An unsupported ABI was encountered.
+    UnsupportedAbi(Rc<str>),
 }
 
 impl fmt::Display for ParserError {

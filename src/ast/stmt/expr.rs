@@ -3,7 +3,7 @@
 use std::{fmt, iter};
 
 use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ExprASTNode, ExpressionBox,
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, AsExprASTNode, ExprASTNode, ExpressionBox,
     StatementASTNode,
 };
 use crate::token::Span;

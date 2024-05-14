@@ -1,7 +1,6 @@
 //! A module containing all the expression-related AST nodes.
 
 use std::fmt;
-use std::ops::Deref;
 
 use debug_tree::TreeBuilder;
 
@@ -160,13 +159,5 @@ impl AsExprASTNode for ExpressionBox {
             ExpressionBox::Value(expr) => expr.as_expr(),
             ExpressionBox::Assignee(expr) => expr.as_expr(),
         }
-    }
-}
-
-impl Deref for ExpressionBox {
-    type Target = dyn ExprASTNode;
-
-    fn deref(&self) -> &Self::Target {
-        self.as_expr()
     }
 }

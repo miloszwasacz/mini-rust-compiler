@@ -2,9 +2,10 @@
 
 use fallible_iterator::FallibleIterator;
 
+use crate::ast::error::SemanticError;
 use crate::ast::{
-    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExprASTNode, ExpressionBox,
-    ExternASTNode, FuncASTNode, FuncProtoASTNode, ItemASTNode, ParamASTNode, PathASTNode,
+    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExpressionBox, ExternASTNode,
+    ExternItem, FuncASTNode, FuncProtoASTNode, ItemASTNode, ParamASTNode, PathASTNode,
     StaticASTNode, Type, TypeASTMetaNode, UnderscoreASTNode,
 };
 use crate::parser::error::ParserError;
@@ -82,6 +83,11 @@ impl Parser {
         }
     }
 
+    /// Pushes a semantic error into the parser's error list.
+    fn push_sem_error(&mut self, error: SemanticError) {
+        self.errors.push(error);
+    }
+
     //TODO Improve documentation
     /// Parses the input file into a `CrateASTNode`, consuming the `Parser`.
     pub(super) fn parse_crate(mut self) -> Result<CrateASTNode> {
@@ -117,13 +123,20 @@ impl Parser {
         let next = self.peek()?;
         Ok(match next.ty() {
             Fn => ItemASTNode::Func(Box::new(self.parse_func()?)),
-            Static => ItemASTNode::Static(Box::new(self.parse_static()?)),
+            Static => ItemASTNode::Static(Box::new(self.parse_static(false)?)),
             Extern => ItemASTNode::Extern(Box::new(self.parse_extern()?)),
             _ => return unknown_token!(self),
         })
     }
 
     fn parse_func(&mut self) -> Result<FuncASTNode> {
+        let proto = self.parse_func_proto()?;
+        let body = self.parse_block_expr()?;
+        let span = Span::new(proto.span().start(), body.span().end());
+        Ok(FuncASTNode::new(proto, body, span))
+    }
+
+    fn parse_func_proto(&mut self) -> Result<FuncProtoASTNode> {
         let start_pos = assert_token!(self, Fn).start();
 
         let ident = assert_ident!(self);
@@ -145,45 +158,8 @@ impl Parser {
             None => TypeASTMetaNode::new(Type::Unit, Span::new(end_pos, end_pos)),
         };
 
-        let body = self.parse_block_expr()?;
-
-        let proto_span = Span::new(start_pos, end_pos);
-        let func_span = Span::new(start_pos, body.span().end());
-
-        let proto = FuncProtoASTNode::new(ident, params, ret_ty, proto_span);
-        Ok(FuncASTNode::new(proto, body, func_span))
-    }
-
-    fn parse_static(&mut self) -> Result<StaticASTNode> {
-        let start_pos = assert_token!(self, Static).start();
-
-        let token = self.consume()?;
-        let (mutability, ident) = match token.ty() {
-            Mut => {
-                let ident = assert_ident!(self);
-                (true, ident)
-            }
-            Ident(ident) => (false, ident.clone()),
-            _ => return unknown_token!(self, token),
-        };
-
-        assert_token!(self, Colon);
-
-        let ty = self.parse_type()?;
-        let value = self.parse_item_assignment()?;
-
-        let end_pos = assert_token!(self, Semi).end();
         let span = Span::new(start_pos, end_pos);
-
-        let item = match value {
-            Some(value) => StaticASTNode::new_with_assignment(ident, value, ty, mutability, span),
-            None => StaticASTNode::new(ident, ty, mutability, span),
-        };
-        Ok(item)
-    }
-
-    fn parse_extern(&mut self) -> Result<ExternASTNode> {
-        unimplemented!()
+        Ok(FuncProtoASTNode::new(ident, params, ret_ty, span))
     }
 
     fn parse_func_params(&mut self) -> Result<Vec<ParamASTNode>> {
@@ -214,15 +190,8 @@ impl Parser {
     fn parse_param(&mut self) -> Result<ParamASTNode> {
         // FunctionParameter + FunctionParameter' rules
         let token = self.consume()?;
-        let (mutability, ident) = match token.ty() {
-            Mut => {
-                let ident = assert_ident_or_underscore!(self);
-                (true, ident)
-            }
-            Underscore => (false, None),
-            Ident(ident) => (false, Some(ident.clone())),
-            _ => return unknown_token!(self, token),
-        };
+        let mutability = self.parse_mut()?;
+        let ident = assert_ident_or_underscore!(self);
 
         // FunctionParameter'' rule
         assert_token!(self, Colon);
@@ -247,29 +216,122 @@ impl Parser {
         }
     }
 
-    fn parse_block_expr(&mut self) -> Result<BlockASTNode> {
-        unimplemented!()
+    fn parse_mut(&mut self) -> Result<bool> {
+        let token = self.peek()?;
+        if let Mut = token.ty() {
+            self.consume().expect("Mut token should be present.");
+            Ok(true)
+        } else {
+            Ok(false)
+        }
     }
 
     fn parse_item_assignment(&mut self) -> Result<Option<ExpressionBox>> {
         let next = self.peek()?;
-
-        let expr = match next.ty() {
+        match next.ty() {
             Assign => {
                 self.consume().expect("Assign token should be present.");
-                self.parse_expr()?
+                Ok(Some(self.parse_expr()?))
             }
             Semi => return Ok(None),
             _ => return unknown_token!(self),
+        }
+    }
+
+    fn parse_static(&mut self, is_extern: bool) -> Result<StaticASTNode> {
+        let start_pos = assert_token!(self, Static).start();
+
+        let mutability = self.parse_mut()?;
+        let ident = assert_ident!(self);
+
+        assert_token!(self, Colon);
+        let ty = self.parse_type()?;
+        let value = self.parse_item_assignment()?;
+
+        let end_pos = assert_token!(self, Semi).end();
+        let span = Span::new(start_pos, end_pos);
+
+        let item = match value {
+            Some(value) => {
+                if is_extern {
+                    self.push_sem_error(SemanticError::ExternStaticWithInitializer {
+                        span: value.span(),
+                    });
+                }
+                StaticASTNode::new_with_assignment(ident, value, ty, mutability, span)
+            }
+            None => {
+                if !is_extern {
+                    self.push_sem_error(SemanticError::StaticWithoutInitializer { span });
+                }
+                StaticASTNode::new(ident, ty, mutability, span)
+            }
+        };
+        Ok(item)
+    }
+
+    fn parse_extern(&mut self) -> Result<ExternASTNode> {
+        let start_pos = assert_token!(self, Extern).start();
+        let next = self.consume()?;
+        let abi = match next.ty() {
+            //TODO Add support for other ABIs
+            Abi(abi) => match abi.as_ref() {
+                "C" => abi.clone(),
+                _ => return Err(ParserError::UnsupportedAbi(abi.clone())),
+            },
+            _ => return unknown_token!(self, next),
         };
 
-        //TODO How to determine if the expression is a value expression?
+        assert_token!(self, LBra);
+        let items = self.parse_extern_items()?;
+        let end_pos = assert_token!(self, RBra).end();
 
-        // Maybe refactor grammar to be more explicit what kind of expression is expected in certain places.
+        let span = Span::new(start_pos, end_pos);
+        Ok(ExternASTNode::new(abi, items, span))
+    }
+
+    fn parse_extern_items(&mut self) -> Result<Vec<ExternItem>> {
+        let mut result = Vec::new();
+        loop {
+            let next = self.peek()?;
+            match next.ty() {
+                Fn => {
+                    let item = self.parse_extern_func()?;
+                    result.push(ExternItem::Func(Box::new(item)));
+                }
+                Static => {
+                    let item = self.parse_static(true)?;
+                    result.push(ExternItem::Static(Box::new(item)));
+                }
+                RBra => return Ok(result),
+                _ => return unknown_token!(self),
+            }
+        }
+    }
+
+    fn parse_extern_func(&mut self) -> Result<FuncProtoASTNode> {
+        let proto = self.parse_func_proto()?;
+
+        let next = self.peek()?;
+        match next.ty() {
+            Semi => {
+                assert_token!(self, Semi);
+            }
+            LBra => {
+                let body_span = self.parse_block_expr()?.span();
+                self.push_sem_error(SemanticError::ExternFunctionWithBody { span: body_span })
+            }
+            _ => return unknown_token!(self),
+        }
+
+        Ok(proto)
+    }
+
+    fn parse_block_expr(&mut self) -> Result<BlockASTNode> {
         unimplemented!()
     }
 
-    fn parse_expr(&mut self) -> Result<Box<dyn ExprASTNode>> {
+    fn parse_expr(&mut self) -> Result<ExpressionBox> {
         unimplemented!()
     }
 

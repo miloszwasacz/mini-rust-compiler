@@ -17,9 +17,14 @@ FunctionReturnType -> "->" Type
 
 StaticItem -> "static" "mut"? ident ":" Type ("=" Expression)? ";"
 
-ExternBlock -> "extern" "\"C\"" "{" ExternFunction* "}"
+ExternBlock -> "extern" "\"C\"" "{" ExternItem* "}"
+
+ExternItem -> ExternFunction
+            | ExternStatic
 
 ExternFunction -> "fn" ident "(" FunctionParameters? ")" FunctionReturnType? ";"
+
+ExternStatic -> "static" "mut"? ident ":" Type ";"
 
 Statement -> ";"
            | LetStatement

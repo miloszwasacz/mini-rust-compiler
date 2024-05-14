@@ -32,12 +32,15 @@ ItemAssignment' -> "=" Expression
 
 StaticItem -> "static" Mut' ident ":" Type ItemAssignment' ";"
 
-ExternBlock -> "extern" "\"C\"" "{" ExternFunctions "}"
+ExternBlock -> "extern" "\"C\"" "{" ExternItems "}"
 
-ExternFunctions -> ExternFunction ExternFunctions
-                 | ε
+ExternItems -> ExternFunction ExternItems
+             | ExternStatic ExternItems
+             | ε
 
 ExternFunction -> "fn" ident "(" FunctionParameters ")" FunctionReturnType ";"
+
+ExternStatic -> "static" Mut' ident ":" Type ";"
 
 LetStatement -> "let" Mut' ident ":" Type ItemAssignment' ";"
 
