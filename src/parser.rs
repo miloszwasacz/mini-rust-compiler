@@ -6,7 +6,6 @@ use std::rc::Rc;
 
 use fallible_iterator::{FallibleIterator, Peekable};
 
-use crate::ast::error::SemanticError;
 use crate::ast::Crate;
 use crate::lexer::Lexer;
 
@@ -23,8 +22,8 @@ pub type Result<T> = std::result::Result<T, ParserError>;
 pub struct Parser {
     lexer: Peekable<Lexer>,
     filename: Rc<str>,
-    /// Recoverable semantic errors that occurred during parsing.
-    errors: Vec<SemanticError>,
+    /// Recoverable errors that occurred during parsing.
+    errors: Vec<RecoverableParserError>,
 }
 
 impl Parser {

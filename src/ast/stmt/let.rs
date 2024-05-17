@@ -2,42 +2,55 @@
 
 use std::{fmt, iter};
 
-use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ValueExprASTNode};
+use crate::ast::{
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ExpressionBox, Type, TypeASTMetaNode,
+};
 use crate::token::Span;
 
 /// An AST node representing a let statement.
 #[derive(Debug)]
 pub struct LetASTNode {
-    decl: Box<dyn AssigneeExprASTNode>,
-    value: Option<Box<dyn ValueExprASTNode>>,
+    /// The declaration has to be an [assignee expression](ExpressionBox::Assignee).
+    decl: ExpressionBox,
+    ty: TypeASTMetaNode,
+    /// The value has to be a [value expression](ExpressionBox::Value).
+    value: Option<ExpressionBox>,
     mutable: bool,
     span: Span,
 }
 
 impl LetASTNode {
-    /// Creates a new `LetASTNode` with the given declaration, mutability and span.
-    pub fn new(decl: Box<dyn AssigneeExprASTNode>, mutable: bool, span: Span) -> LetASTNode {
+    /// Creates a new `LetASTNode` with the given declaration, type, mutability and span.
+    pub fn new(decl: ExpressionBox, ty: TypeASTMetaNode, mutable: bool, span: Span) -> LetASTNode {
         LetASTNode {
             decl,
+            ty,
             value: None,
             mutable,
             span,
         }
     }
 
-    /// Creates a new `LetASTNode` with the given declaration, assigned value, mutability and span.
+    /// Creates a new `LetASTNode` with the given declaration, type, assigned value, mutability and span.
     pub fn new_with_assignment(
-        decl: Box<dyn AssigneeExprASTNode>,
-        value: Box<dyn ValueExprASTNode>,
+        decl: ExpressionBox,
+        ty: TypeASTMetaNode,
+        value: ExpressionBox,
         mutable: bool,
         span: Span,
     ) -> LetASTNode {
         LetASTNode {
             decl,
+            ty,
             value: Some(value),
             mutable,
             span,
         }
+    }
+
+    /// Returns the type of the declaration
+    pub fn ty(&self) -> Type {
+        self.ty.ty()
     }
 
     /// Returns whether the variable is mutable.
