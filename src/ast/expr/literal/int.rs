@@ -3,7 +3,7 @@
 use crate::ast::Type;
 use crate::token::Span;
 
-use super::LiteralASTNode;
+use super::{impl_ast, LiteralASTNode};
 
 impl LiteralASTNode<i32> {
     /// Creates a new `LiteralASTNode<i32>` with the given value and span.
@@ -11,3 +11,5 @@ impl LiteralASTNode<i32> {
         LiteralASTNode::new_generic(value, Type::I32, span)
     }
 }
+
+impl_ast!(i32);

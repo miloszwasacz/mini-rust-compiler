@@ -59,6 +59,7 @@ ExpressionWithBlock -> BlockExpression
 LiteralExpression -> integer_literal
                    | float_literal
                    | boolean_literal
+                   | "(" ")" /* Unit */
 
 PathExpression -> ident
 

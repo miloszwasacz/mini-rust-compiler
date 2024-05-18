@@ -44,8 +44,6 @@ ExternStatic -> "static" Mut' ident ":" Type ";"
 
 LetStatement -> "let" Mut' ident ":" Type ItemAssignment' ";"
 
-ExpressionStatement -> ExpressionWithoutBlock
-
 Expression -> ExpressionWithoutBlock
 
 ExpressionWithoutBlock -> OperatorExpression
@@ -72,11 +70,16 @@ PathExpression -> ident
 BlockExpression -> "{" Statements "}"
 
 Statements -> LetStatement Statements
-            | ExpressionStatement StatementsTail
+            | ExpressionWithoutBlock Statements'
+            | ";" Statements
             | ε
 
-StatementsTail -> ";" Statements
-                 | ε
+// ExpressionStatement workaround
+// At this point the semicolon requirement depends on the type of the expression that precedes this rule:
+// - If it is just an ExpressionWithBlock, then the semicolon is optional
+// - Otherwise, the semicolon is required
+Statements' -> ";" Statements
+             | ε
 
 OperatorExpression -> Expr1
 
@@ -125,7 +128,10 @@ Expr11 -> NegationExpression
 NegationExpression -> "-" Expr11
                     | "!" Expr11
 
-GroupedExpression -> "(" Expression ")"
+GroupedExpression -> "(" GroupedOrUnit
+
+GroupedOrUnit -> ")"
+               | Expression ")"
 
 CallExpression' -> "(" CallParams ")"
                  | ε

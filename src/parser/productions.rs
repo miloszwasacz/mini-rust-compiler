@@ -1,12 +1,13 @@
 //! A module containing all production rules for the parser.
 
+use either::Either;
 use fallible_iterator::FallibleIterator;
 
 use crate::ast::error::SemanticError;
 use crate::ast::{
     ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExpressionBox, ExternASTNode,
-    ExternItem, FuncASTNode, FuncProtoASTNode, ItemASTNode, LetASTNode, ParamASTNode, PathASTNode,
-    StaticASTNode, Type, TypeASTMetaNode, UnderscoreASTNode,
+    ExternItem, FuncASTNode, FuncProtoASTNode, ItemASTNode, LetASTNode, LiteralASTNode, LiteralBox,
+    ParamASTNode, PathASTNode, StaticASTNode, Type, TypeASTMetaNode, UnderscoreASTNode,
 };
 use crate::parser::error::{ParserError, RecoverableParserError};
 use crate::parser::{Parser, Result};
@@ -389,11 +390,38 @@ impl Parser {
         Ok(let_stmt)
     }
 
-    fn parse_block_expr(&mut self) -> Result<BlockASTNode> {
-        unimplemented!()
+    fn parse_expr(&mut self) -> Result<ExpressionBox> {
+        self.parse_expr_wo_block()
     }
 
-    fn parse_expr(&mut self) -> Result<ExpressionBox> {
+    fn parse_expr_wo_block(&mut self) -> Result<ExpressionBox> {
+        unimplemented!();
+    }
+
+    fn parse_expr_w_block(&mut self) -> Result<ExpressionBox> {
+        unimplemented!();
+    }
+
+    fn parse_literal_expr(&mut self) -> Result<LiteralBox> {
+        /// A macro to create a boxed literal node.
+        macro_rules! box_literal {
+            ($box_ty:ident, $ty:ty, $val:expr, $span:expr) => {{
+                let literal = LiteralASTNode::<$ty>::new($val, $span);
+                Ok(LiteralBox::$box_ty(Box::new(literal)))
+            }};
+        }
+
+        let token = self.consume()?;
+        match token.ty() {
+            //TODO Add support for different sizes of ints and floats
+            IntLit(val) => box_literal!(I32, i32, *val, token.span()),
+            FloatLit(val) => box_literal!(F64, f64, *val, token.span()),
+            BoolLit(val) => box_literal!(Bool, bool, *val, token.span()),
+            _ => unknown_token!(self, token),
+        }
+    }
+
+    fn parse_block_expr(&mut self) -> Result<BlockASTNode> {
         unimplemented!()
     }
 
