@@ -13,75 +13,12 @@ use crate::parser::error::{ParserError, RecoverableParserError};
 use crate::parser::{Parser, Result};
 use crate::token::{Position, Span, Token, TokenType::*};
 
-macro_rules! unknown_token {
-    ($self:expr) => {{
-        let token = $self
-            .consume()
-            .expect("Unsuccessful consuming after successful peeking should be impossible.");
-        unknown_token!($self, token)
-    }};
-    ($self:expr, $token:expr) => {
-        Err(ParserError::UnexpectedToken($token))
-    };
-}
+use self::macros::*;
 
-macro_rules! assert_token {
-    ($self:expr, $expected:pat) => {{
-        let token = $self.consume()?;
-        assert_token!($self, token, $expected)
-    }};
-    ($self:expr, $token:expr, $expected:pat) => {
-        match $token.ty() {
-            $expected => $token.span(),
-            _ => unknown_token!($self, $token)?,
-        }
-    };
-}
+mod macros;
 
-//TODO Refactor some usages of assert_token to use expect_token instead
-macro_rules! expect_token {
-    ($self:expr, $expected:pat) => {{
-        match $self.peek()?.ty() {
-            $expected => {
-                let token = $self.consume()?;
-                let token = match token.ty() {
-                    $expected => token,
-                    _ => unreachable!(),
-                };
-                Some(token.span())
-            }
-            _ => None,
-        }
-    }};
-}
-
-macro_rules! assert_ident {
-    ($self:expr) => {{
-        let token = $self.consume()?;
-        assert_ident!($self, token)
-    }};
-    ($self:expr, $token:expr) => {
-        match $token.ty() {
-            Ident(ident) => ident.clone(),
-            _ => unknown_token!($self, $token)?,
-        }
-    };
-}
-
-macro_rules! assert_ident_or_underscore {
-    ($self:expr) => {{
-        let token = $self.consume()?;
-        assert_ident_or_underscore!($self, token)
-    }};
-    ($self:expr, $token:expr) => {
-        match $token.ty() {
-            Ident(ident) => Some(ident.clone()),
-            Underscore => None,
-            _ => unknown_token!($self, $token)?,
-        }
-    };
-}
-
+//TODO Get rid of this
+#[allow(clippy::missing_docs_in_private_items)]
 impl Parser {
     /// Consumes the next token from the lexer.
     fn consume(&mut self) -> Result<Token> {
@@ -107,7 +44,7 @@ impl Parser {
     }
 
     //TODO Improve documentation
-    /// Parses the input file into a `CrateASTNode`, consuming the `Parser`.
+    /// Parses the input file into a [`CrateASTNode`], consuming the `Parser`.
     pub(super) fn parse_crate(mut self) -> Result<CrateASTNode> {
         let items = self.parse_items()?;
 

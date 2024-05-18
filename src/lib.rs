@@ -1,5 +1,6 @@
 //! A crate containing all the individual components of the μRust compiler.
 #![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
 
 pub mod ast;
 pub mod lexer;
