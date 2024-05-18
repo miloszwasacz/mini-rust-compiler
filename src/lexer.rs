@@ -103,12 +103,7 @@ impl Lexer {
     /// Returns the next token from the source file.
     fn next_token(&mut self) -> Result<Token> {
         // Skip any whitespace
-        while let Some(c) = self.iter.next_if(|&c| helper::is_whitespace(c)) {
-            self.position.col_inc();
-            if helper::is_new_line(c) {
-                self.position.line_inc();
-            }
-        }
+        self.collect_while(helper::is_whitespace, &mut String::new());
 
         let start_pos = self.position;
         let c = match self.iter.next() {
@@ -156,27 +151,16 @@ impl Lexer {
         }
 
         // Number literals
-        if c.is_ascii_digit() {
-            let mut num_str = String::from(c);
-            while let Some(c) = self.iter.next_if(|&c| helper::is_digit(c)) {
-                num_str.push(c);
-                self.position.col_inc();
-            }
+        if helper::is_digit(c) {
+            let mut num_str = c.to_string();
+            self.collect_while(|c| !helper::is_whitespace(c), &mut num_str);
 
-            let tt = if self.iter.peek().is_some_and(|c| *c == '.') {
+            let tt = if num_str.contains('.') {
                 // Floating point literal
-                num_str.push(self.iter.next().unwrap());
-                self.position.col_inc();
-                while let Some(c) = self.iter.next_if(|&c| helper::is_digit(c)) {
-                    num_str.push(c);
-                    self.position.col_inc();
-                }
-
                 let float_val = num_str.parse::<f64>().map_err(|_| {
                     let err_kind = LexerErrorKind::InvalidFloatLiteral(num_str.into_boxed_str());
                     LexerError::new(err_kind, Span::new(start_pos, self.position))
                 })?;
-
                 TokenType::FloatLit(float_val)
             } else {
                 // Integer literal
@@ -184,7 +168,6 @@ impl Lexer {
                     let err_kind = LexerErrorKind::InvalidIntLiteral(num_str.into_boxed_str());
                     LexerError::new(err_kind, Span::new(start_pos, self.position))
                 })?;
-
                 TokenType::IntLit(int_val)
             };
 
@@ -194,7 +177,11 @@ impl Lexer {
         // String literals (not supported; can only appear as an ABI) //TODO Add support for string literals
         if c == '"' {
             let mut str_lit = String::new();
-            while let Some(c) = self.iter.next_if(|&c| c != '"') {
+            let mut escaped = false;
+            while let Some(c) = self.iter.next_if(|&c| c != '"' || escaped) {
+                if c == '\\' {
+                    escaped = !escaped;
+                }
                 str_lit.push(c);
                 self.position.col_inc();
             }
@@ -216,11 +203,24 @@ impl Lexer {
 
         // Identifier or keyword
         if is_xid_start(c) || c == '_' {
-            let mut id_str = String::new();
-            id_str.push(c);
-            while let Some(c) = self.iter.next_if(|&c| is_xid_continue(c)) {
-                id_str.push(c);
-                self.position.col_inc();
+            let mut id_str = c.to_string();
+            self.collect_while(|c| !helper::is_whitespace(c), &mut id_str);
+
+            let mut invalid_chars = Vec::new();
+            for (i, c) in id_str.chars().enumerate() {
+                if !is_xid_continue(c) {
+                    invalid_chars.push(Position::new_at(start_pos.line(), start_pos.column() + i));
+                }
+            }
+            if !invalid_chars.is_empty() {
+                let err_kind = LexerErrorKind::InvalidIdentifier {
+                    ident: id_str.into_boxed_str(),
+                    invalid_char_pos: invalid_chars,
+                };
+                return Err(LexerError::new(
+                    err_kind,
+                    Span::new(start_pos, self.position),
+                ));
             }
 
             let tt = TokenType::extract_keyword_or_symbol(id_str.as_str())
@@ -235,6 +235,18 @@ impl Lexer {
             err_kind,
             Span::new(start_pos, self.position),
         ))
+    }
+
+    /// Collects characters from `self.iter` to `s` while the predicate `pred` is true,
+    /// updating `self.position` accordingly.
+    fn collect_while(&mut self, pred: fn(char) -> bool, s: &mut String) {
+        while let Some(c) = self.iter.next_if(|&c| pred(c)) {
+            s.push(c);
+            self.position.col_inc();
+            if helper::is_new_line(c) {
+                self.position.line_inc();
+            }
+        }
     }
 }
 

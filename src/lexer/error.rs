@@ -3,7 +3,7 @@
 use std::error::Error;
 use std::fmt;
 
-use crate::token::Span;
+use crate::token::{Position, Span};
 
 /// The type of error that can occur during lexing.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -12,6 +12,13 @@ pub enum LexerErrorKind {
     InvalidIntLiteral(Box<str>),
     /// The float literal has an invalid format.
     InvalidFloatLiteral(Box<str>),
+    /// The identifier contains invalid characters.
+    InvalidIdentifier {
+        /// The identifier that caused the error.
+        ident: Box<str>,
+        /// The positions of the invalid characters.
+        invalid_char_pos: Vec<Position>,
+    },
     /// The string literal is not terminated (i.e. it is missing a closing quote).
     UnterminatedStringLiteral,
     /// An unknown token was encountered.
@@ -40,6 +47,22 @@ impl fmt::Display for LexerError {
             }
             LexerErrorKind::InvalidFloatLiteral(s) => {
                 write!(f, r#"Invalid float literal "{}" at {}"#, s, self.span)
+            }
+            LexerErrorKind::InvalidIdentifier {
+                ident,
+                invalid_char_pos,
+            } => {
+                write!(
+                    f,
+                    r#"Invalid identifier "{}" at {} with invalid characters at {}"#,
+                    ident,
+                    self.span,
+                    invalid_char_pos
+                        .iter()
+                        .map(|pos| pos.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                )
             }
             LexerErrorKind::UnterminatedStringLiteral => {
                 write!(
