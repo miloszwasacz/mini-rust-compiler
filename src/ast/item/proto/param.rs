@@ -2,15 +2,14 @@
 
 use std::{fmt, iter};
 
-use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, StatementASTNode, TypeASTMetaNode,
-};
+use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, TypeASTMetaNode};
 use crate::token::Span;
 
 /// An AST node representing a function parameter.
 #[derive(Debug)]
 pub struct ParamASTNode {
-    assignee: Box<dyn AssigneeExprASTNode>,
+    /// The assignee has to be an [assignee expression](crate::ast::AssigneeExprASTNode).
+    assignee: Box<dyn ExprASTNode>,
     ty: TypeASTMetaNode,
     mutable: bool,
     span: Span,
@@ -19,7 +18,7 @@ pub struct ParamASTNode {
 impl ParamASTNode {
     /// Creates a new `ParamASTNode` with the given assignee, type, mutability and span.
     pub fn new(
-        assignee: Box<dyn AssigneeExprASTNode>,
+        assignee: Box<dyn ExprASTNode>,
         ty: TypeASTMetaNode,
         mutable: bool,
         span: Span,
@@ -30,11 +29,6 @@ impl ParamASTNode {
             mutable,
             span,
         }
-    }
-
-    /// Returns the assignee.
-    pub fn assignee(&self) -> &dyn AssigneeExprASTNode {
-        self.assignee.as_ref()
     }
 
     /// Returns the type.
@@ -56,8 +50,6 @@ impl ASTNode for ParamASTNode {
         Some(Box::new(iter))
     }
 }
-
-impl StatementASTNode for ParamASTNode {}
 
 impl fmt::Display for ParamASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

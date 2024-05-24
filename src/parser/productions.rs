@@ -159,7 +159,7 @@ impl Parser {
         assert_token!(self, Colon);
         let ty = self.parse_type()?;
 
-        let assignee: Box<dyn AssigneeExprASTNode> = match ident {
+        let assignee: Box<dyn ExprASTNode> = match ident {
             None => Box::new(UnderscoreASTNode::new(token.span())),
             Some(ident) => Box::new(PathASTNode::new(ident, token.span())),
         };

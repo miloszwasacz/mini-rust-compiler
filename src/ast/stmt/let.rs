@@ -2,7 +2,9 @@
 
 use std::{fmt, iter};
 
-use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, Type, TypeASTMetaNode};
+use crate::ast::{
+    ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, StatementASTNode, Type, TypeASTMetaNode,
+};
 use crate::token::Span;
 
 /// An AST node representing a let statement.
@@ -72,6 +74,8 @@ impl ASTNode for LetASTNode {
         Some(Box::new(iter))
     }
 }
+
+impl StatementASTNode for LetASTNode {}
 
 impl fmt::Display for LetASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

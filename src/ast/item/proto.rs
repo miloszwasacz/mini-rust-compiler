@@ -3,10 +3,12 @@
 use std::fmt;
 use std::rc::Rc;
 
-use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ParamASTNode, TypeASTMetaNode,
-};
+use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AsASTNode, TypeASTMetaNode};
 use crate::token::Span;
+
+pub use self::param::*;
+
+mod param;
 
 /// An AST node representing a function prototype.
 #[derive(Debug)]
