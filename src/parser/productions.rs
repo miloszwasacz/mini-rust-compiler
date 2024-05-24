@@ -5,10 +5,10 @@ use fallible_iterator::FallibleIterator;
 
 use crate::ast::error::SemanticError;
 use crate::ast::{
-    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExprASTNode, ExternASTNode,
-    ExternItem, FunCallASTNode, FuncASTNode, FuncProtoASTNode, ItemASTNode, LetASTNode,
-    LiteralASTNode, LiteralBox, ParamASTNode, PathASTNode, ReturnASTNode, StaticASTNode, Type,
-    TypeASTMetaNode, UnderscoreASTNode,
+    ASTNode, BlockASTNode, BlockReturnExpr, CrateASTNode, ExprASTNode, ExprStmtASTNode,
+    ExternASTNode, ExternItem, FunCallASTNode, FuncASTNode, FuncProtoASTNode, ItemASTNode,
+    LetASTNode, LiteralASTNode, LiteralBox, ParamASTNode, PathASTNode, ReturnASTNode, Statements,
+    StaticASTNode, Type, TypeASTMetaNode, UnderscoreASTNode,
 };
 use crate::parser::error::{ParserError, RecoverableParserError};
 use crate::parser::{Parser, Result};
@@ -329,6 +329,23 @@ impl Parser {
         Ok(let_stmt)
     }
 
+    // This production rule is not present in the transformed grammar
+    // because (I believe) it cannot be represented as production rule in a context-free grammar.
+    /// Returns (expr_stmt, had_trailing_semi)
+    fn parse_expr_stmt(&mut self) -> Result<(ExprStmtASTNode, bool)> {
+        let expr = self.parse_expr_wo_block()?;
+
+        let semi = expect_token!(self, Semi);
+        let end_pos = match semi {
+            Some(span) => span.end(),
+            None => expr.span().end(),
+        };
+        let span = Span::new(expr.span().start(), end_pos);
+
+        let expr_stmt = ExprStmtASTNode::new(expr.into_expr(), span);
+        Ok((expr_stmt, semi.is_none()))
+    }
+
     fn parse_expr(&mut self) -> Result<Box<dyn ParserExpr>> {
         self.parse_expr_wo_block()
     }
@@ -393,7 +410,44 @@ impl Parser {
     }
 
     fn parse_block_expr(&mut self) -> Result<BlockASTNode> {
-        unimplemented!()
+        let start_pos = assert_token!(self, LBra).start();
+
+        let (stmts, return_expr) = self.parse_stmts()?;
+
+        let end_pos = assert_token!(self, RBra).end();
+        let span = Span::new(start_pos, end_pos);
+
+        Ok(match return_expr {
+            Some(return_expr) => BlockASTNode::new_with_return(stmts, return_expr, span),
+            None => BlockASTNode::new(stmts, span),
+        })
+    }
+
+    fn parse_stmts(&mut self) -> Result<(Statements, BlockReturnExpr)> {
+        let mut statements: Statements = Vec::new();
+        loop {
+            let next = self.peek()?;
+            match next.ty() {
+                Let => {
+                    let stmt = self.parse_let_stmt()?;
+                    statements.push(Box::new(stmt));
+                }
+                Semi => {
+                    assert_token!(self, Semi);
+                    continue;
+                }
+                RBra => return Ok((statements, None)),
+                _ => {
+                    let (expr_stmt, is_last) = self.parse_expr_stmt()?;
+                    if is_last {
+                        let return_expr = Some(expr_stmt.into_expr());
+                        return Ok((statements, return_expr));
+                    } else {
+                        statements.push(Box::new(expr_stmt));
+                    }
+                }
+            }
+        }
     }
 
     fn parse_call_params(&mut self) -> Result<Vec<Box<dyn ExprASTNode>>> {

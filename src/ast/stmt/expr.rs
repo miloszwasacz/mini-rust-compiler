@@ -23,6 +23,11 @@ impl ExprStmtASTNode {
     pub fn expr(&self) -> &dyn ExprASTNode {
         self.expr.as_expr()
     }
+
+    /// Extracts the expression.
+    pub fn into_expr(self) -> Box<dyn ExprASTNode> {
+        self.expr
+    }
 }
 
 impl ASTNode for ExprStmtASTNode {
