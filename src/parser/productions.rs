@@ -5,10 +5,10 @@ use fallible_iterator::FallibleIterator;
 
 use crate::ast::error::SemanticError;
 use crate::ast::{
-    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExternASTNode, ExternItem,
-    FuncASTNode, FuncProtoASTNode, ItemASTNode, LetASTNode, LiteralASTNode, LiteralBox,
-    ParamASTNode, PathASTNode, ReturnASTNode, StaticASTNode, Type, TypeASTMetaNode,
-    UnderscoreASTNode,
+    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExprASTNode, ExternASTNode,
+    ExternItem, FunCallASTNode, FuncASTNode, FuncProtoASTNode, ItemASTNode, LetASTNode,
+    LiteralASTNode, LiteralBox, ParamASTNode, PathASTNode, ReturnASTNode, StaticASTNode, Type,
+    TypeASTMetaNode, UnderscoreASTNode,
 };
 use crate::parser::error::{ParserError, RecoverableParserError};
 use crate::parser::{Parser, Result};
@@ -337,6 +337,10 @@ impl Parser {
         unimplemented!();
     }
 
+    fn parse_expr_wo_block_(&mut self) -> Result<Box<dyn ParserExpr>> {
+        unimplemented!()
+    }
+
     fn parse_expr_w_block(&mut self) -> Result<Box<dyn ParserExpr>> {
         unimplemented!();
     }
@@ -360,7 +364,39 @@ impl Parser {
         }
     }
 
+    fn parse_path_or_call_expr(&mut self) -> Result<Box<dyn ParserExpr>> {
+        let path = Box::new(self.parse_path_expr()?);
+        let next = self.peek()?;
+        Ok(match next.ty() {
+            LPar => {
+                // CallExpression' rule
+                assert_token!(self, LPar);
+
+                let params = self.parse_call_params()?;
+
+                let end_pos = assert_token!(self, RPar).end();
+                let span = Span::new(path.span().start(), end_pos);
+
+                Box::new(FunCallASTNode::new(path, params, span))
+            }
+            _ => path,
+        })
+    }
+
+    fn parse_path_expr(&mut self) -> Result<PathASTNode> {
+        //TODO Add support more complex paths
+        let token = self.consume()?;
+        match token.ty() {
+            Ident(ident) => Ok(PathASTNode::new(ident.clone(), token.span())),
+            _ => unknown_token!(self, token),
+        }
+    }
+
     fn parse_block_expr(&mut self) -> Result<BlockASTNode> {
+        unimplemented!()
+    }
+
+    fn parse_call_params(&mut self) -> Result<Vec<Box<dyn ExprASTNode>>> {
         unimplemented!()
     }
 
