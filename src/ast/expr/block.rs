@@ -3,7 +3,8 @@
 use std::fmt;
 
 use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, StatementASTNode, ValueExprASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
+    StatementASTNode, ValueExprASTNode,
 };
 use crate::token::Span;
 
@@ -30,7 +31,19 @@ impl ASTNode for BlockASTNode {
     }
 }
 
-impl ExprASTNode for BlockASTNode {}
+impl ExprASTNode for BlockASTNode {
+    fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode> {
+        None
+    }
+
+    fn try_as_value(&self) -> Option<&dyn ValueExprASTNode> {
+        Some(self)
+    }
+
+    fn try_as_assignee(&self) -> Option<&dyn AssigneeExprASTNode> {
+        None
+    }
+}
 
 impl ValueExprASTNode for BlockASTNode {}
 

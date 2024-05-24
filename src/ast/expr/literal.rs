@@ -86,7 +86,10 @@ macro_rules! impl_ast {
         Type = $ty:ty;
         $display_impl:item
     ) => {
-        use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, ValueExprASTNode};
+        use crate::ast::{
+            ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode,
+            PlaceExprASTNode, ValueExprASTNode,
+        };
         use std::fmt;
 
         impl ASTNode for LiteralASTNode<$ty> {
@@ -97,7 +100,19 @@ macro_rules! impl_ast {
             }
         }
 
-        impl ExprASTNode for LiteralASTNode<$ty> {}
+        impl ExprASTNode for LiteralASTNode<$ty> {
+            fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode> {
+                None
+            }
+
+            fn try_as_value(&self) -> Option<&dyn ValueExprASTNode> {
+                Some(self)
+            }
+
+            fn try_as_assignee(&self) -> Option<&dyn AssigneeExprASTNode> {
+                None
+            }
+        }
 
         impl ValueExprASTNode for LiteralASTNode<$ty> {}
 

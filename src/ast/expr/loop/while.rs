@@ -3,16 +3,16 @@
 use std::{fmt, iter};
 
 use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, BlockASTNode, ExprASTNode, ExpressionBox,
-    ValueExprASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, AssigneeExprASTNode, BlockASTNode,
+    ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
 };
 use crate::token::Span;
 
 /// An AST node representing a while loop expression.
 #[derive(Debug)]
 pub struct WhileASTNode {
-    /// The condition can be [any expression](ExpressionBox::Unspecified).
-    condition: Box<ExpressionBox>,
+    /// The condition can be [any kind of expression](ExprASTNode).
+    condition: Box<dyn ExprASTNode>,
     block: Box<BlockASTNode>,
     span: Span,
 }
@@ -20,7 +20,7 @@ pub struct WhileASTNode {
 impl WhileASTNode {
     /// Creates a new `WhileASTNode` with the given condition, block and span.
     pub fn new(
-        condition: Box<ExpressionBox>,
+        condition: Box<dyn ExprASTNode>,
         block: Box<BlockASTNode>,
         span: Span,
     ) -> WhileASTNode {
@@ -43,7 +43,19 @@ impl ASTNode for WhileASTNode {
     }
 }
 
-impl ExprASTNode for WhileASTNode {}
+impl ExprASTNode for WhileASTNode {
+    fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode> {
+        None
+    }
+
+    fn try_as_value(&self) -> Option<&dyn ValueExprASTNode> {
+        Some(self)
+    }
+
+    fn try_as_assignee(&self) -> Option<&dyn AssigneeExprASTNode> {
+        None
+    }
+}
 
 impl ValueExprASTNode for WhileASTNode {}
 

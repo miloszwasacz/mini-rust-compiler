@@ -2,34 +2,61 @@
 
 use std::{fmt, iter};
 
-use crate::ast::{ast_defaults, ASTNode, AsASTNode, ExprASTNode, ExpressionBox, ValueExprASTNode};
+use crate::ast::{
+    ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
+    ValueExprASTNode,
+};
 use crate::token::Span;
 
 /// An AST node representing a return expression.
 #[derive(Debug)]
 pub struct ReturnASTNode {
-    /// The return value can be [any expression](ExpressionBox::Unspecified).
-    value: ExpressionBox,
+    /// The return value can be [any kind of expression](ExprASTNode).
+    value: Option<Box<dyn ExprASTNode>>,
     span: Span,
 }
 
 impl ReturnASTNode {
     /// Creates a new `ReturnASTNode` with the given return value and span.
-    pub fn new(value: ExpressionBox, span: Span) -> ReturnASTNode {
-        ReturnASTNode { value, span }
+    pub fn new(value: Box<dyn ExprASTNode>, span: Span) -> ReturnASTNode {
+        ReturnASTNode {
+            value: Some(value),
+            span,
+        }
+    }
+
+    /// Creates a new `ReturnASTNode` with an empty return value and the given span.
+    pub fn empty(span: Span) -> ReturnASTNode {
+        ReturnASTNode { value: None, span }
     }
 }
 
 impl ASTNode for ReturnASTNode {
     ast_defaults!();
 
-    fn children(&self) -> Option<crate::ast::ASTChildIterator> {
-        let iter = iter::once(self.value.as_ast());
-        Some(Box::new(iter))
+    fn children(&self) -> Option<ASTChildIterator> {
+        self.value
+            .as_ref()
+            .map(|v| v.as_ast())
+            .map(iter::once)
+            .map(Box::new)
+            .map(|b| b as ASTChildIterator)
     }
 }
 
-impl ExprASTNode for ReturnASTNode {}
+impl ExprASTNode for ReturnASTNode {
+    fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode> {
+        None
+    }
+
+    fn try_as_value(&self) -> Option<&dyn ValueExprASTNode> {
+        Some(self)
+    }
+
+    fn try_as_assignee(&self) -> Option<&dyn AssigneeExprASTNode> {
+        None
+    }
+}
 
 impl ValueExprASTNode for ReturnASTNode {}
 

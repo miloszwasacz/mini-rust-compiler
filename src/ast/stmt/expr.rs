@@ -2,23 +2,20 @@
 
 use std::{fmt, iter};
 
-use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, AsExprASTNode, ExprASTNode, ExpressionBox,
-    StatementASTNode,
-};
+use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, StatementASTNode};
 use crate::token::Span;
 
 /// An AST node representing an expression statement.
 #[derive(Debug)]
 pub struct ExprStmtASTNode {
-    /// The expression can be [any kind of expression](ExpressionBox::Unspecified).
-    expr: ExpressionBox,
+    /// The expression can be [any kind of expression](ExprASTNode).
+    expr: Box<dyn ExprASTNode>,
     span: Span,
 }
 
 impl ExprStmtASTNode {
     /// Creates a new `ExprStmtASTNode` with the given expression and span.
-    pub fn new(expr: ExpressionBox, span: Span) -> ExprStmtASTNode {
+    pub fn new(expr: Box<dyn ExprASTNode>, span: Span) -> ExprStmtASTNode {
         ExprStmtASTNode { expr, span }
     }
 

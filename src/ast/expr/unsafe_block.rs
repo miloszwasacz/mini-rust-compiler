@@ -2,7 +2,9 @@
 
 use std::fmt;
 
-use crate::ast::{ASTNode, BlockASTNode, ExprASTNode, ValueExprASTNode};
+use crate::ast::{
+    ASTNode, AssigneeExprASTNode, BlockASTNode, ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
+};
 use crate::token::Span;
 
 /// An AST node representing an unsafe block expression.
@@ -29,7 +31,19 @@ impl ASTNode for UnsafeBlockASTNode {
     }
 }
 
-impl ExprASTNode for UnsafeBlockASTNode {}
+impl ExprASTNode for UnsafeBlockASTNode {
+    fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode> {
+        None
+    }
+
+    fn try_as_value(&self) -> Option<&dyn ValueExprASTNode> {
+        Some(self)
+    }
+
+    fn try_as_assignee(&self) -> Option<&dyn AssigneeExprASTNode> {
+        None
+    }
+}
 
 impl ValueExprASTNode for UnsafeBlockASTNode {}
 

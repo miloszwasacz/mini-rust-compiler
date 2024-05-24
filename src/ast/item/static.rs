@@ -3,17 +3,15 @@
 use std::fmt;
 use std::rc::Rc;
 
-use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ExpressionBox, TypeASTMetaNode,
-};
+use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, TypeASTMetaNode};
 use crate::token::Span;
 
 /// An AST node representing a static item.
 #[derive(Debug)]
 pub struct StaticASTNode {
     name: Rc<str>,
-    /// The value has to be a [value expression](ExpressionBox::Value).
-    value: Option<ExpressionBox>,
+    /// The value has to be a [value expression](crate::ast::ValueExprASTNode).
+    value: Option<Box<dyn ExprASTNode>>,
     ty: TypeASTMetaNode,
     mutable: bool,
     span: Span,
@@ -34,7 +32,7 @@ impl StaticASTNode {
     /// Creates a new `StaticASTNode` with the given name, assigned value, type, mutability and span.
     pub fn new_with_assignment(
         name: Rc<str>,
-        value: ExpressionBox,
+        value: Box<dyn ExprASTNode>,
         ty: TypeASTMetaNode,
         mutable: bool,
         span: Span,
@@ -51,6 +49,11 @@ impl StaticASTNode {
     /// Returns the type.
     pub fn ty(&self) -> TypeASTMetaNode {
         self.ty
+    }
+
+    /// Returns the name.
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
     /// Returns whether the item is mutable.

@@ -5,9 +5,10 @@ use fallible_iterator::FallibleIterator;
 
 use crate::ast::error::SemanticError;
 use crate::ast::{
-    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExpressionBox, ExternASTNode,
+    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExprASTNode, ExternASTNode,
     ExternItem, FuncASTNode, FuncProtoASTNode, ItemASTNode, LetASTNode, LiteralASTNode, LiteralBox,
-    ParamASTNode, PathASTNode, StaticASTNode, Type, TypeASTMetaNode, UnderscoreASTNode,
+    ParamASTNode, PathASTNode, ReturnASTNode, StaticASTNode, Type, TypeASTMetaNode,
+    UnderscoreASTNode,
 };
 use crate::parser::error::{ParserError, RecoverableParserError};
 use crate::parser::{Parser, Result};
@@ -39,7 +40,7 @@ impl Parser {
     }
 
     /// Pushes a recoverable error into the parser's error list.
-    fn push_recov_error(&mut self, error: RecoverableParserError) {
+    fn push_rcv_error(&mut self, error: RecoverableParserError) {
         self.errors.push(error);
     }
 
@@ -185,12 +186,13 @@ impl Parser {
         }
     }
 
-    fn parse_item_assignment(&mut self) -> Result<Option<ExpressionBox>> {
+    fn parse_item_assignment(&mut self) -> Result<Option<Box<dyn ExprASTNode>>> {
         let next = self.peek()?;
         match next.ty() {
             Assign => {
                 self.consume().expect("Assign token should be present.");
-                Ok(Some(self.parse_expr()?))
+                let expr = self.parse_expr()?;
+                Ok(Some(expr))
             }
             Semi => Ok(None),
             _ => unknown_token!(self),
@@ -213,7 +215,7 @@ impl Parser {
         let item = match value {
             Some(value) => {
                 if is_extern {
-                    self.push_recov_error(
+                    self.push_rcv_error(
                         SemanticError::ExternStaticWithInitializer { span: value.span() }.into(),
                     );
                 }
@@ -221,7 +223,7 @@ impl Parser {
             }
             None => {
                 if !is_extern {
-                    self.push_recov_error(SemanticError::StaticWithoutInitializer { span }.into());
+                    self.push_rcv_error(SemanticError::StaticWithoutInitializer { span }.into());
                 }
                 StaticASTNode::new(ident, ty, mutability, span)
             }
@@ -237,7 +239,7 @@ impl Parser {
             Abi(abi) => match abi.as_ref() {
                 "C" => abi.clone(),
                 _ => {
-                    self.push_recov_error(RecoverableParserError::UnsupportedAbi(abi.clone()));
+                    self.push_rcv_error(RecoverableParserError::UnsupportedAbi(abi.clone()));
                     abi.clone()
                 }
             },
@@ -281,7 +283,7 @@ impl Parser {
             }
             LBra => {
                 let body_span = self.parse_block_expr()?.span();
-                self.push_recov_error(
+                self.push_rcv_error(
                     SemanticError::ExternFunctionWithBody { span: body_span }.into(),
                 )
             }
@@ -310,15 +312,13 @@ impl Parser {
         let end_pos = match expect_token!(self, Semi) {
             Some(span) => span.end(),
             None => {
-                self.push_recov_error(RecoverableParserError::MissingToken(Semi, end_pos));
+                self.push_rcv_error(RecoverableParserError::MissingToken(Semi, end_pos));
                 end_pos
             }
         };
         let span = Span::new(start_pos, end_pos);
 
-        let assignee = PathASTNode::new(ident, span);
-        let assignee = ExpressionBox::Assignee(Box::new(assignee));
-
+        let assignee = Box::new(PathASTNode::new(ident, span));
         let let_stmt = match val {
             Some(val) => LetASTNode::new_with_assignment(assignee, ty, val, mutability, span),
             None => LetASTNode::new(assignee, ty, mutability, span),
@@ -327,15 +327,15 @@ impl Parser {
         Ok(let_stmt)
     }
 
-    fn parse_expr(&mut self) -> Result<ExpressionBox> {
+    fn parse_expr(&mut self) -> Result<Box<dyn ExprASTNode>> {
         self.parse_expr_wo_block()
     }
 
-    fn parse_expr_wo_block(&mut self) -> Result<ExpressionBox> {
+    fn parse_expr_wo_block(&mut self) -> Result<Box<dyn ExprASTNode>> {
         unimplemented!();
     }
 
-    fn parse_expr_w_block(&mut self) -> Result<ExpressionBox> {
+    fn parse_expr_w_block(&mut self) -> Result<Box<dyn ExprASTNode>> {
         unimplemented!();
     }
 

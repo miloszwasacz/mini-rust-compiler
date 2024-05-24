@@ -3,16 +3,16 @@
 use std::{fmt, iter};
 
 use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, BlockASTNode, ExprASTNode, ExpressionBox,
-    ValueExprASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, AssigneeExprASTNode, BlockASTNode,
+    ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
 };
 use crate::token::Span;
 
 /// An AST node representing an if expression.
 #[derive(Debug)]
 pub struct IfASTNode {
-    /// The condition can be [any expression](ExpressionBox::Unspecified).
-    condition: Box<ExpressionBox>,
+    /// The condition can be [any kind of expression](ExprASTNode).
+    condition: Box<dyn ExprASTNode>,
     then_block: Box<BlockASTNode>,
     else_block: Option<Box<BlockASTNode>>,
     span: Span,
@@ -21,7 +21,7 @@ pub struct IfASTNode {
 impl IfASTNode {
     /// Creates a new `IfASTNode` with the given condition, then block, else block and span.
     pub fn new(
-        condition: Box<ExpressionBox>,
+        condition: Box<dyn ExprASTNode>,
         then_block: Box<BlockASTNode>,
         else_block: Box<BlockASTNode>,
         span: Span,
@@ -36,7 +36,7 @@ impl IfASTNode {
 
     /// Creates a new `IfASTNode` with the given condition, then block and span.
     pub fn new_without_else(
-        condition: Box<ExpressionBox>,
+        condition: Box<dyn ExprASTNode>,
         then_block: Box<BlockASTNode>,
         span: Span,
     ) -> IfASTNode {
@@ -61,7 +61,19 @@ impl ASTNode for IfASTNode {
     }
 }
 
-impl ExprASTNode for IfASTNode {}
+impl ExprASTNode for IfASTNode {
+    fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode> {
+        None
+    }
+
+    fn try_as_value(&self) -> Option<&dyn ValueExprASTNode> {
+        Some(self)
+    }
+
+    fn try_as_assignee(&self) -> Option<&dyn AssigneeExprASTNode> {
+        None
+    }
+}
 
 impl ValueExprASTNode for IfASTNode {}
 

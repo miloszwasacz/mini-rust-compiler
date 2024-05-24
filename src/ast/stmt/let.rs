@@ -2,26 +2,29 @@
 
 use std::{fmt, iter};
 
-use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ExpressionBox, Type, TypeASTMetaNode,
-};
+use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, Type, TypeASTMetaNode};
 use crate::token::Span;
 
 /// An AST node representing a let statement.
 #[derive(Debug)]
 pub struct LetASTNode {
-    /// The declaration has to be an [assignee expression](ExpressionBox::Assignee).
-    decl: ExpressionBox,
+    /// The declaration has to be an [assignee expression](crate::ast::AssigneeExprASTNode).
+    decl: Box<dyn ExprASTNode>,
     ty: TypeASTMetaNode,
-    /// The value has to be a [value expression](ExpressionBox::Value).
-    value: Option<ExpressionBox>,
+    /// The value has to be a [value expression](crate::ast::ValueExprASTNode).
+    value: Option<Box<dyn ExprASTNode>>,
     mutable: bool,
     span: Span,
 }
 
 impl LetASTNode {
     /// Creates a new `LetASTNode` with the given declaration, type, mutability and span.
-    pub fn new(decl: ExpressionBox, ty: TypeASTMetaNode, mutable: bool, span: Span) -> LetASTNode {
+    pub fn new(
+        decl: Box<dyn ExprASTNode>,
+        ty: TypeASTMetaNode,
+        mutable: bool,
+        span: Span,
+    ) -> LetASTNode {
         LetASTNode {
             decl,
             ty,
@@ -33,9 +36,9 @@ impl LetASTNode {
 
     /// Creates a new `LetASTNode` with the given declaration, type, assigned value, mutability and span.
     pub fn new_with_assignment(
-        decl: ExpressionBox,
+        decl: Box<dyn ExprASTNode>,
         ty: TypeASTMetaNode,
-        value: ExpressionBox,
+        value: Box<dyn ExprASTNode>,
         mutable: bool,
         span: Span,
     ) -> LetASTNode {

@@ -2,7 +2,10 @@
 
 use std::fmt;
 
-use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode};
+use crate::ast::{
+    ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
+    ValueExprASTNode,
+};
 use crate::token::Span;
 
 /// An AST node representing an underscore.
@@ -26,7 +29,19 @@ impl ASTNode for UnderscoreASTNode {
     }
 }
 
-impl ExprASTNode for UnderscoreASTNode {}
+impl ExprASTNode for UnderscoreASTNode {
+    fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode> {
+        None
+    }
+
+    fn try_as_value(&self) -> Option<&dyn ValueExprASTNode> {
+        None
+    }
+
+    fn try_as_assignee(&self) -> Option<&dyn AssigneeExprASTNode> {
+        Some(self)
+    }
+}
 
 impl AssigneeExprASTNode for UnderscoreASTNode {}
 

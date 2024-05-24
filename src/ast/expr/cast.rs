@@ -3,7 +3,7 @@
 use std::{fmt, iter};
 
 use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ExprASTNode, ExpressionBox,
+    ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
     TypeASTMetaNode, ValueExprASTNode,
 };
 use crate::token::Span;
@@ -11,15 +11,15 @@ use crate::token::Span;
 /// An AST node representing a type cast.
 #[derive(Debug)]
 pub struct TypeCastASTNode {
-    /// The value can be [any expression](ExpressionBox::Unspecified).
-    value: Box<ExpressionBox>,
+    /// The value can be [any kind of expression](ExprASTNode).
+    value: Box<dyn ExprASTNode>,
     ty: TypeASTMetaNode,
     span: Span,
 }
 
 impl TypeCastASTNode {
     /// Creates a new `TypeCastASTNode` with the given value, type and span.
-    pub fn new(value: Box<ExpressionBox>, ty: TypeASTMetaNode, span: Span) -> TypeCastASTNode {
+    pub fn new(value: Box<dyn ExprASTNode>, ty: TypeASTMetaNode, span: Span) -> TypeCastASTNode {
         TypeCastASTNode { value, ty, span }
     }
 }
@@ -33,7 +33,19 @@ impl ASTNode for TypeCastASTNode {
     }
 }
 
-impl ExprASTNode for TypeCastASTNode {}
+impl ExprASTNode for TypeCastASTNode {
+    fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode> {
+        None
+    }
+
+    fn try_as_value(&self) -> Option<&dyn ValueExprASTNode> {
+        Some(self)
+    }
+
+    fn try_as_assignee(&self) -> Option<&dyn AssigneeExprASTNode> {
+        None
+    }
+}
 
 impl ValueExprASTNode for TypeCastASTNode {}
 

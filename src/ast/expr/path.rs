@@ -35,7 +35,19 @@ impl ASTNode for PathASTNode {
     }
 }
 
-impl ExprASTNode for PathASTNode {}
+impl ExprASTNode for PathASTNode {
+    fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode> {
+        Some(self)
+    }
+
+    fn try_as_value(&self) -> Option<&dyn ValueExprASTNode> {
+        Some(self)
+    }
+
+    fn try_as_assignee(&self) -> Option<&dyn AssigneeExprASTNode> {
+        Some(self)
+    }
+}
 
 impl PlaceExprASTNode for PathASTNode {}
 

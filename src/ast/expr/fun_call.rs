@@ -3,8 +3,8 @@
 use std::fmt;
 
 use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ExprASTNode, ExpressionBox, PathASTNode,
-    ValueExprASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PathASTNode,
+    PlaceExprASTNode, ValueExprASTNode,
 };
 use crate::token::Span;
 
@@ -12,14 +12,18 @@ use crate::token::Span;
 #[derive(Debug)]
 pub struct FunCallASTNode {
     path: Box<PathASTNode>,
-    /// The arguments can be [any kind of expressions](ExpressionBox::Unspecified).
-    args: Vec<ExpressionBox>,
+    /// The arguments can be [any kind of expressions](ExprASTNode).
+    args: Vec<Box<dyn ExprASTNode>>,
     span: Span,
 }
 
 impl FunCallASTNode {
     /// Creates a new `FunCallASTNode` with the given path, arguments and span.
-    pub fn new(path: Box<PathASTNode>, args: Vec<ExpressionBox>, span: Span) -> FunCallASTNode {
+    pub fn new(
+        path: Box<PathASTNode>,
+        args: Vec<Box<dyn ExprASTNode>>,
+        span: Span,
+    ) -> FunCallASTNode {
         FunCallASTNode { path, args, span }
     }
 
@@ -38,7 +42,19 @@ impl ASTNode for FunCallASTNode {
     }
 }
 
-impl ExprASTNode for FunCallASTNode {}
+impl ExprASTNode for FunCallASTNode {
+    fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode> {
+        None
+    }
+
+    fn try_as_value(&self) -> Option<&dyn ValueExprASTNode> {
+        Some(self)
+    }
+
+    fn try_as_assignee(&self) -> Option<&dyn AssigneeExprASTNode> {
+        None
+    }
+}
 
 impl ValueExprASTNode for FunCallASTNode {}
 
