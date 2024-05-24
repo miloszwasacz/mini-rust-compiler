@@ -5,8 +5,8 @@ use fallible_iterator::FallibleIterator;
 
 use crate::ast::error::SemanticError;
 use crate::ast::{
-    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExprASTNode, ExternASTNode,
-    ExternItem, FuncASTNode, FuncProtoASTNode, ItemASTNode, LetASTNode, LiteralASTNode, LiteralBox,
+    ASTNode, AssigneeExprASTNode, BlockASTNode, CrateASTNode, ExternASTNode, ExternItem,
+    FuncASTNode, FuncProtoASTNode, ItemASTNode, LetASTNode, LiteralASTNode, LiteralBox,
     ParamASTNode, PathASTNode, ReturnASTNode, StaticASTNode, Type, TypeASTMetaNode,
     UnderscoreASTNode,
 };
@@ -14,8 +14,10 @@ use crate::parser::error::{ParserError, RecoverableParserError};
 use crate::parser::{Parser, Result};
 use crate::token::{Position, Span, Token, TokenType::*};
 
+use self::expr_kind::*;
 use self::macros::*;
 
+mod expr_kind;
 mod macros;
 
 //TODO Get rid of this
@@ -186,7 +188,7 @@ impl Parser {
         }
     }
 
-    fn parse_item_assignment(&mut self) -> Result<Option<Box<dyn ExprASTNode>>> {
+    fn parse_item_assignment(&mut self) -> Result<Option<Box<dyn ParserExpr>>> {
         let next = self.peek()?;
         match next.ty() {
             Assign => {
@@ -207,7 +209,7 @@ impl Parser {
 
         assert_token!(self, Colon);
         let ty = self.parse_type()?;
-        let value = self.parse_item_assignment()?;
+        let value = self.parse_item_assignment()?.map(ParserExpr::into_expr);
 
         let end_pos = assert_token!(self, Semi).end();
         let span = Span::new(start_pos, end_pos);
@@ -303,7 +305,7 @@ impl Parser {
         //TODO Add support for type inference
         assert_token!(self, Colon);
         let ty = self.parse_type()?;
-        let val = self.parse_item_assignment()?;
+        let val = self.parse_item_assignment()?.map(ParserExpr::into_expr);
 
         let end_pos = match &val {
             Some(val) => val.span().end(),
@@ -327,15 +329,15 @@ impl Parser {
         Ok(let_stmt)
     }
 
-    fn parse_expr(&mut self) -> Result<Box<dyn ExprASTNode>> {
+    fn parse_expr(&mut self) -> Result<Box<dyn ParserExpr>> {
         self.parse_expr_wo_block()
     }
 
-    fn parse_expr_wo_block(&mut self) -> Result<Box<dyn ExprASTNode>> {
+    fn parse_expr_wo_block(&mut self) -> Result<Box<dyn ParserExpr>> {
         unimplemented!();
     }
 
-    fn parse_expr_w_block(&mut self) -> Result<Box<dyn ExprASTNode>> {
+    fn parse_expr_w_block(&mut self) -> Result<Box<dyn ParserExpr>> {
         unimplemented!();
     }
 
