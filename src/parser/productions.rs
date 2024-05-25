@@ -1,14 +1,13 @@
 //! A module containing all production rules for the parser.
 
-use either::Either;
 use fallible_iterator::FallibleIterator;
 
 use crate::ast::error::SemanticError;
 use crate::ast::{
     ASTNode, BlockASTNode, BlockReturnExpr, CrateASTNode, ExprASTNode, ExprStmtASTNode,
     ExternASTNode, ExternItem, FunCallASTNode, FuncASTNode, FuncProtoASTNode, ItemASTNode,
-    LetASTNode, LiteralASTNode, LiteralBox, ParamASTNode, PathASTNode, ReturnASTNode, Statements,
-    StaticASTNode, Type, TypeASTMetaNode, UnderscoreASTNode,
+    LetASTNode, LiteralASTNode, LiteralBox, ParamASTNode, PathASTNode, Statements, StaticASTNode,
+    Type, TypeASTMetaNode, UnderscoreASTNode,
 };
 use crate::parser::error::{ParserError, RecoverableParserError};
 use crate::parser::{Parser, Result};
@@ -19,6 +18,7 @@ use self::macros::*;
 
 mod expr_kind;
 mod macros;
+mod ops;
 
 //TODO Get rid of this
 #[allow(clippy::missing_docs_in_private_items)]
@@ -401,7 +401,7 @@ impl Parser {
     }
 
     fn parse_path_expr(&mut self) -> Result<PathASTNode> {
-        //TODO Add support more complex paths
+        //TODO Add support for more complex paths
         let token = self.consume()?;
         match token.ty() {
             Ident(ident) => Ok(PathASTNode::new(ident.clone(), token.span())),
@@ -448,6 +448,10 @@ impl Parser {
                 }
             }
         }
+    }
+
+    fn parse_operator_expr(&mut self) -> Result<Box<dyn ParserExpr>> {
+        ops::parse_ops(self)
     }
 
     fn parse_call_params(&mut self) -> Result<Vec<Box<dyn ExprASTNode>>> {
