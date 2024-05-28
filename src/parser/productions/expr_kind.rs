@@ -3,7 +3,7 @@
 
 use crate::ast::{
     ArithExprASTNode, AssignASTNode, BlockASTNode, CompExprASTNode, ExprASTNode, FunCallASTNode,
-    GroupedExprASTNode, IfASTNode, InfLoopASTNode, LazyBoolExprASTNode, LiteralASTNode,
+    GroupedExprASTNode, IfASTNode, InfLoopASTNode, LazyBoolExprASTNode, LiteralASTNode, LiteralBox,
     NegExprASTNode, PathASTNode, ReturnASTNode, TypeCastASTNode, UnderscoreASTNode,
     UnsafeBlockASTNode, WhileASTNode,
 };
@@ -62,6 +62,17 @@ parser_expr_impl!(LiteralASTNode<i32>, WithoutBlock);
 parser_expr_impl!(LiteralASTNode<f64>, WithoutBlock);
 parser_expr_impl!(LiteralASTNode<bool>, WithoutBlock);
 parser_expr_impl!(LiteralASTNode<()>, WithoutBlock);
+impl LiteralBox {
+    /// Converts the literal box into a boxed parser expression.
+    pub(super) fn into_parser_expr(self) -> Box<dyn ParserExpr> {
+        match self {
+            LiteralBox::I32(lit) => lit,
+            LiteralBox::F64(lit) => lit,
+            LiteralBox::Bool(lit) => lit,
+            LiteralBox::Unit(lit) => lit,
+        }
+    }
+}
 parser_expr_impl!(PathASTNode, WithoutBlock);
 parser_expr_impl!(NegExprASTNode, WithoutBlock);
 parser_expr_impl!(ArithExprASTNode, WithoutBlock);

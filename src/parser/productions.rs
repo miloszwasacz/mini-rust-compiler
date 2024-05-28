@@ -352,11 +352,40 @@ impl Parser {
     }
 
     fn parse_expr_wo_block(&mut self) -> Result<Box<dyn ParserExpr>> {
-        unimplemented!();
+        let next = self.peek()?;
+        match next.ty() {
+            Minus | Not | IntLit(_) | FloatLit(_) | BoolLit(_) | LPar | Underscore | LBra | If
+            | Unsafe | Ident(_) | Loop | While => self.parse_operator_expr(),
+            Return => {
+                let return_expr = self.parse_return()?;
+                Ok(Box::new(return_expr))
+            }
+            _ => unknown_token!(self),
+        }
     }
 
+    // ExpressionWithoutBlock' rule
     fn parse_expr_wo_block_(&mut self) -> Result<Box<dyn ParserExpr>> {
-        unimplemented!()
+        let next = self.peek()?;
+        match next.ty() {
+            IntLit(_) | FloatLit(_) | BoolLit(_) => {
+                let lit = self.parse_literal_expr()?;
+                Ok(lit.into_parser_expr())
+            }
+            Ident(_) => self.parse_path_or_call_expr(),
+            LPar => {
+                let expr = self.parse_grouped_expr_or_unit_lit()?;
+                Ok(match expr {
+                    Either::Left(expr) => Box::new(expr),
+                    Either::Right(lit) => Box::new(lit),
+                })
+            }
+            Underscore => {
+                let expr = self.parse_underscore_expr()?;
+                Ok(Box::new(expr))
+            }
+            _ => unknown_token!(self),
+        }
     }
 
     fn parse_expr_w_block(&mut self) -> Result<Box<dyn ParserExpr>> {
@@ -382,6 +411,7 @@ impl Parser {
         }
     }
 
+    // Ident' rule
     fn parse_path_or_call_expr(&mut self) -> Result<Box<dyn ParserExpr>> {
         let path = Box::new(self.parse_path_expr()?);
         let next = self.peek()?;
