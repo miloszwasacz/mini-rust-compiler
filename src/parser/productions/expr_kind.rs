@@ -3,8 +3,9 @@
 
 use crate::ast::{
     ArithExprASTNode, AssignASTNode, BlockASTNode, CompExprASTNode, ExprASTNode, FunCallASTNode,
-    IfASTNode, InfLoopASTNode, LazyBoolExprASTNode, LiteralASTNode, NegExprASTNode, PathASTNode,
-    ReturnASTNode, TypeCastASTNode, UnderscoreASTNode, UnsafeBlockASTNode, WhileASTNode,
+    GroupedExprASTNode, IfASTNode, InfLoopASTNode, LazyBoolExprASTNode, LiteralASTNode,
+    NegExprASTNode, PathASTNode, ReturnASTNode, TypeCastASTNode, UnderscoreASTNode,
+    UnsafeBlockASTNode, WhileASTNode,
 };
 
 use self::ExpressionKind::*;
@@ -69,6 +70,7 @@ parser_expr_impl!(LazyBoolExprASTNode, WithoutBlock);
 parser_expr_impl!(TypeCastASTNode, WithoutBlock);
 parser_expr_impl!(AssignASTNode, WithoutBlock);
 parser_expr_impl!(FunCallASTNode, WithoutBlock);
+parser_expr_impl!(GroupedExprASTNode, WithoutBlock);
 parser_expr_impl!(ReturnASTNode, WithoutBlock);
 parser_expr_impl!(UnderscoreASTNode, WithoutBlock);
 

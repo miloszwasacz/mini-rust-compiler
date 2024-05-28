@@ -1,13 +1,14 @@
 //! A module containing all production rules for the parser.
 
+use either::Either;
 use fallible_iterator::FallibleIterator;
 
 use crate::ast::error::SemanticError;
 use crate::ast::{
     ASTNode, BlockASTNode, BlockReturnExpr, CrateASTNode, ExprASTNode, ExprStmtASTNode,
-    ExternASTNode, ExternItem, FunCallASTNode, FuncASTNode, FuncProtoASTNode, ItemASTNode,
-    LetASTNode, LiteralASTNode, LiteralBox, ParamASTNode, PathASTNode, Statements, StaticASTNode,
-    Type, TypeASTMetaNode, UnderscoreASTNode,
+    ExternASTNode, ExternItem, FunCallASTNode, FuncASTNode, FuncProtoASTNode, GroupedExprASTNode,
+    ItemASTNode, LetASTNode, LiteralASTNode, LiteralBox, ParamASTNode, PathASTNode, ReturnASTNode,
+    Statements, StaticASTNode, Type, TypeASTMetaNode, UnderscoreASTNode,
 };
 use crate::parser::error::{ParserError, RecoverableParserError};
 use crate::parser::{Parser, Result};
@@ -454,11 +455,58 @@ impl Parser {
         ops::parse_ops(self)
     }
 
+    fn parse_grouped_expr_or_unit_lit(
+        &mut self,
+    ) -> Result<Either<GroupedExprASTNode, LiteralASTNode<()>>> {
+        let start_pos = assert_token!(self, LPar).start();
+
+        // GroupedOrUnit rule
+        let next = self.peek()?;
+        Ok(match next.ty() {
+            RPar => {
+                let end_pos = assert_token!(self, RPar).end();
+                let span = Span::new(start_pos, end_pos);
+                Either::Right(LiteralASTNode::<()>::new(span))
+            }
+            _ => {
+                let expr = self.parse_expr()?;
+                let end_pos = assert_token!(self, RPar).end();
+                let span = Span::new(start_pos, end_pos);
+
+                let expr = GroupedExprASTNode::new(expr.into_expr(), span);
+                Either::Left(expr)
+            }
+        })
+    }
+
     fn parse_call_params(&mut self) -> Result<Vec<Box<dyn ExprASTNode>>> {
         unimplemented!()
     }
 
     //TODO Implement production rules
+
+    fn parse_return(&mut self) -> Result<ReturnASTNode> {
+        let span = assert_token!(self, Return);
+
+        // ReturnExpressionTail' rule
+        let next = self.peek()?;
+        Ok(match next.ty() {
+            Return | Minus | Not | IntLit(_) | FloatLit(_) | BoolLit(_) | LPar | Underscore
+            | LBra | If | Unsafe | Ident(_) | Loop | While => {
+                let expr = self.parse_expr()?.into_expr();
+                let span = Span::new(span.start(), expr.span().end());
+
+                ReturnASTNode::new(expr, span)
+            }
+            RPar | Comma | RBra | Semi => ReturnASTNode::empty(span),
+            _ => return unknown_token!(self),
+        })
+    }
+
+    fn parse_underscore_expr(&mut self) -> Result<UnderscoreASTNode> {
+        let span = assert_token!(self, Underscore);
+        Ok(UnderscoreASTNode::new(span))
+    }
 
     fn parse_type(&mut self) -> Result<TypeASTMetaNode> {
         let token = self.consume()?;
