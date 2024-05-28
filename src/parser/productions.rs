@@ -510,7 +510,30 @@ impl Parser {
     }
 
     fn parse_call_params(&mut self) -> Result<Vec<Box<dyn ExprASTNode>>> {
-        unimplemented!()
+        let mut result = Vec::new();
+        loop {
+            // CallParams rule
+            let next = self.peek()?;
+            match next.ty() {
+                Return | Minus | Not | IntLit(_) | FloatLit(_) | BoolLit(_) | LPar | Underscore
+                | LBra | If | Unsafe | Ident(_) | Loop | While => {
+                    let expr = self.parse_expr()?;
+                    result.push(expr.into_expr());
+                }
+                RPar => return Ok(result),
+                _ => return unknown_token!(self),
+            }
+
+            // CallParams' rule
+            let next = self.peek()?;
+            match next.ty() {
+                Comma => {
+                    assert_token!(self, Comma);
+                }
+                RPar => return Ok(result),
+                _ => return unknown_token!(self),
+            }
+        }
     }
 
     //TODO Implement production rules
