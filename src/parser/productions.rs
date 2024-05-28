@@ -4,12 +4,7 @@ use either::Either;
 use fallible_iterator::FallibleIterator;
 
 use crate::ast::error::SemanticError;
-use crate::ast::{
-    ASTNode, BlockASTNode, BlockReturnExpr, CrateASTNode, ExprASTNode, ExprStmtASTNode,
-    ExternASTNode, ExternItem, FunCallASTNode, FuncASTNode, FuncProtoASTNode, GroupedExprASTNode,
-    ItemASTNode, LetASTNode, LiteralASTNode, LiteralBox, ParamASTNode, PathASTNode, ReturnASTNode,
-    Statements, StaticASTNode, Type, TypeASTMetaNode, UnderscoreASTNode,
-};
+use crate::ast::*;
 use crate::parser::error::{ParserError, RecoverableParserError};
 use crate::parser::{Parser, Result};
 use crate::token::{Position, Span, Token, TokenType::*};
@@ -534,6 +529,38 @@ impl Parser {
                 _ => return unknown_token!(self),
             }
         }
+    }
+
+    fn parse_loop_expr(&mut self) -> Result<Box<dyn ParserExpr>> {
+        let next = self.peek()?;
+        Ok(match next.ty() {
+            Loop => Box::new(self.parse_inf_loop_expr()?),
+            While => Box::new(self.parse_pred_loop_expr()?),
+            _ => return unknown_token!(self),
+        })
+    }
+
+    fn parse_inf_loop_expr(&mut self) -> Result<InfLoopASTNode> {
+        let start_pos = assert_token!(self, Loop).start();
+        let body = self.parse_block_expr()?;
+        let end_pos = body.span().end();
+        let span = Span::new(start_pos, end_pos);
+
+        let loop_expr = InfLoopASTNode::new(Box::new(body), span);
+        Ok(loop_expr)
+    }
+
+    fn parse_pred_loop_expr(&mut self) -> Result<WhileASTNode> {
+        let start_pos = assert_token!(self, While).start();
+        assert_token!(self, LPar);
+        let condition = self.parse_expr()?;
+        assert_token!(self, RPar);
+        let body = self.parse_block_expr()?;
+        let end_pos = body.span().end();
+        let span = Span::new(start_pos, end_pos);
+
+        let while_expr = WhileASTNode::new(condition.into_expr(), Box::new(body), span);
+        Ok(while_expr)
     }
 
     //TODO Implement production rules

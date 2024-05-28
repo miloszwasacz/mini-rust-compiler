@@ -146,9 +146,9 @@ LoopExpression -> InfiniteLoopExpression
 
 InfiniteLoopExpression -> "loop" BlockExpression
 
-PredicateLoopExpression -> "while" OperatorExpression BlockExpression
+PredicateLoopExpression -> "while" Expression BlockExpression
 
-IfExpression -> "if" OperatorExpression BlockExpression IfExpressionTail'
+IfExpression -> "if" Expression BlockExpression IfExpressionTail'
 IfExpressionTail' -> "else" ElseExpression'
                    | ε
 ElseExpression' -> BlockExpression
@@ -157,6 +157,7 @@ ElseExpression' -> BlockExpression
 UnsafeExpression -> "unsafe" BlockExpression
 
 ReturnExpression -> "return" ReturnExpressionTail'
+// The empty rule makes the grammar ambiguous on `{` -- in that case the parser should just use the first production rule
 ReturnExpressionTail' -> Expression
                        | ε
 
