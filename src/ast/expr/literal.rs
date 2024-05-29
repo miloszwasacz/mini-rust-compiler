@@ -1,36 +1,12 @@
 //! A module containing Literal AST node implementations.
 
-use std::fmt;
-
-use debug_tree::TreeBuilder;
-
-use crate::ast::{ASTChildIterator, ASTNode, AsExprASTNode, ExprASTNode, Type};
+use crate::ast::Type;
 use crate::token::Span;
 
 mod bool;
 mod float;
 mod int;
 mod unit;
-
-/// A macro for delegating method calls to the appropriate variant of a `LiteralBox`.
-macro_rules! lit_box_auto_impl {
-    ($self:expr, $delegate:path) => {
-        match $self {
-            LiteralBox::I32(expr) => $delegate(expr.as_ref()),
-            LiteralBox::Bool(expr) => $delegate(expr.as_ref()),
-            LiteralBox::F64(expr) => $delegate(expr.as_ref()),
-            LiteralBox::Unit(expr) => $delegate(expr.as_ref()),
-        }
-    };
-    ($self:expr, $delegate:path, $( $param:expr )* ) => {
-        match $self {
-            LiteralBox::I32(expr) => $delegate(expr.as_ref(), $( $param )*),
-            LiteralBox::F64(expr) => $delegate(expr.as_ref(), $( $param )*),
-            LiteralBox::Bool(expr) => $delegate(expr.as_ref(), $( $param )*),
-            LiteralBox::Unit(expr) => $delegate(expr.as_ref(), $( $param )*),
-        }
-    };
-}
 
 /// A generic AST node representing a literal.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -45,7 +21,7 @@ impl<T> LiteralASTNode<T> {
     ///
     /// This is a generic implementation of the `LiteralASTNode` constructor.
     /// Each concrete type [T] should have its own implementation of the constructor
-    /// which calls this one while specifying the correct `ty`.
+    /// which calls this one while specifying the correct type `ty`.
     ///
     /// # Example
     /// ```ignore
@@ -120,59 +96,3 @@ macro_rules! impl_ast {
     };
 }
 use impl_ast;
-
-/// A boxed literal AST node.
-#[derive(Debug)]
-pub enum LiteralBox {
-    /// A boxed [`LiteralASTNode<i32>`].
-    I32(Box<LiteralASTNode<i32>>),
-    /// A boxed [`LiteralASTNode<f64>`].
-    F64(Box<LiteralASTNode<f64>>),
-    /// A boxed [`LiteralASTNode<bool>`].
-    Bool(Box<LiteralASTNode<bool>>),
-    /// A boxed [`LiteralASTNode<()>`].
-    Unit(Box<LiteralASTNode<()>>),
-}
-
-impl LiteralBox {
-    /// Returns the type of the literal inside the box.
-    pub fn ty(&self) -> Type {
-        lit_box_auto_impl!(self, LiteralASTNode::ty)
-    }
-
-    /// Casts the boxed literal into a boxed expression.
-    pub fn into_expr(self) -> Box<dyn ExprASTNode> {
-        match self {
-            LiteralBox::I32(expr) => expr,
-            LiteralBox::F64(expr) => expr,
-            LiteralBox::Bool(expr) => expr,
-            LiteralBox::Unit(expr) => expr,
-        }
-    }
-}
-
-impl fmt::Display for LiteralBox {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        lit_box_auto_impl!(self, fmt::Display::fmt, f)
-    }
-}
-
-impl ASTNode for LiteralBox {
-    fn span(&self) -> Span {
-        lit_box_auto_impl!(self, ASTNode::span)
-    }
-
-    fn children(&self) -> Option<ASTChildIterator> {
-        lit_box_auto_impl!(self, ASTNode::children)
-    }
-
-    fn add_to_tree_string(&self, builder: &mut TreeBuilder) {
-        lit_box_auto_impl!(self, ASTNode::add_to_tree_string, builder)
-    }
-}
-
-impl AsExprASTNode for LiteralBox {
-    fn as_expr(&self) -> &dyn ExprASTNode {
-        lit_box_auto_impl!(self, AsExprASTNode::as_expr)
-    }
-}

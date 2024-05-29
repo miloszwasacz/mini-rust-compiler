@@ -357,25 +357,22 @@ impl Parser {
     // ExpressionWithoutBlock' rule
     fn parse_expr_wo_block_(&mut self) -> Result<Box<dyn ExprASTNode>> {
         let next = self.peek()?;
-        Ok(match next.ty() {
-            IntLit(_) | FloatLit(_) | BoolLit(_) => {
-                let lit = self.parse_literal_expr()?;
-                lit.into_expr()
-            }
-            Ident(_) => self.parse_path_or_call_expr()?,
+        match next.ty() {
+            IntLit(_) | FloatLit(_) | BoolLit(_) => self.parse_literal_expr(),
+            Ident(_) => self.parse_path_or_call_expr(),
             LPar => {
                 let expr = self.parse_grouped_expr_or_unit_lit()?;
-                match expr {
+                Ok(match expr {
                     Either::Left(expr) => Box::new(expr),
                     Either::Right(lit) => Box::new(lit),
-                }
+                })
             }
             Underscore => {
                 let expr = self.parse_underscore_expr()?;
-                Box::new(expr)
+                Ok(Box::new(expr))
             }
-            _ => return unknown_token!(self),
-        })
+            _ => unknown_token!(self),
+        }
     }
 
     fn parse_expr_w_block(&mut self) -> Result<Box<dyn ExprASTNode>> {
@@ -389,21 +386,21 @@ impl Parser {
         })
     }
 
-    fn parse_literal_expr(&mut self) -> Result<LiteralBox> {
+    fn parse_literal_expr(&mut self) -> Result<Box<dyn ExprASTNode>> {
         /// A macro to create a boxed literal node.
         macro_rules! box_literal {
-            ($box_ty:ident, $ty:ty, $val:expr, $span:expr) => {{
+            ($ty:ty, $val:expr, $span:expr) => {{
                 let literal = LiteralASTNode::<$ty>::new($val, $span);
-                Ok(LiteralBox::$box_ty(Box::new(literal)))
+                Ok(Box::new(literal))
             }};
         }
 
         let token = self.consume()?;
         match token.ty() {
             //TODO Add support for different sizes of ints and floats
-            IntLit(val) => box_literal!(I32, i32, *val, token.span()),
-            FloatLit(val) => box_literal!(F64, f64, *val, token.span()),
-            BoolLit(val) => box_literal!(Bool, bool, *val, token.span()),
+            IntLit(val) => box_literal!(i32, *val, token.span()),
+            FloatLit(val) => box_literal!(f64, *val, token.span()),
+            BoolLit(val) => box_literal!(bool, *val, token.span()),
             _ => unknown_token!(self, token),
         }
     }
