@@ -144,14 +144,13 @@ impl Parser {
         }
     }
 
-    //noinspection GrazieInspection
     fn parse_param(&mut self) -> Result<ParamASTNode> {
-        // FunctionParameter + FunctionParameter' rules
+        // FunctionParam + FunctionParam' rules
         let token = self.consume()?;
         let mutability = self.parse_mut()?;
         let ident = assert_ident_or_underscore!(self);
 
-        // FunctionParameter'' rule
+        // FunctionParam'' rule
         assert_token!(self, Colon);
         let ty = self.parse_type()?;
 
@@ -384,7 +383,14 @@ impl Parser {
     }
 
     fn parse_expr_w_block(&mut self) -> Result<Box<dyn ParserExpr>> {
-        unimplemented!();
+        let next = self.peek()?;
+        Ok(match next.ty() {
+            LBra => Box::new(self.parse_block_expr()?),
+            Loop | While => self.parse_loop_expr()?,
+            If => Box::new(self.parse_if_expr()?),
+            Unsafe => Box::new(self.parse_unsafe_expr()?),
+            _ => return unknown_token!(self),
+        })
     }
 
     fn parse_literal_expr(&mut self) -> Result<LiteralBox> {
@@ -615,7 +621,15 @@ impl Parser {
         })
     }
 
-    //TODO Implement production rules
+    fn parse_unsafe_expr(&mut self) -> Result<UnsafeBlockASTNode> {
+        let start_pos = assert_token!(self, Unsafe).start();
+        let block = self.parse_block_expr()?;
+        let end_pos = block.span().end();
+        let span = Span::new(start_pos, end_pos);
+
+        let unsafe_block = UnsafeBlockASTNode::new(Box::new(block), span);
+        Ok(unsafe_block)
+    }
 
     fn parse_return(&mut self) -> Result<ReturnASTNode> {
         let span = assert_token!(self, Return);
