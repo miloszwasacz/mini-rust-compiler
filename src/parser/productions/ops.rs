@@ -65,19 +65,18 @@ macro_rules! parse_op {
         mod $name {
             use super::*;
 
-            pub(super) fn parse(parser: &mut Parser) -> Result<Box<dyn ParserExpr>> {
+            pub(super) fn parse(parser: &mut Parser) -> Result<Box<dyn ExprASTNode>> {
                 let lhs = $next::parse(parser)?;
                 parse_tail(parser, lhs)
             }
 
-            fn parse_tail(parser: &mut Parser, lhs: Box<dyn ParserExpr>) -> Result<Box<dyn ParserExpr>> {
+            fn parse_tail(parser: &mut Parser, lhs: Box<dyn ExprASTNode>) -> Result<Box<dyn ExprASTNode>> {
                 let next = parser.peek()?;
                 match next.ty() {
                     $(
                         $op => {
-                            let lhs = lhs.into_expr();
                             assert_token!(parser, $op);
-                            let rhs = $next::parse(parser)?.into_expr();
+                            let rhs = $next::parse(parser)?;
                             let span = Span::new(lhs.span().start(), rhs.span().end());
 
                             let lhs = Box::new($ctr(lhs, rhs, span));
@@ -114,7 +113,7 @@ macro_rules! parse_op {
 }
 
 /// The main function to parse operators.
-pub fn parse_ops(parser: &mut Parser) -> Result<Box<dyn ParserExpr>> {
+pub fn parse_ops(parser: &mut Parser) -> Result<Box<dyn ExprASTNode>> {
     op1::parse(parser)
 }
 
@@ -250,17 +249,16 @@ mod op10 {
     use super::*;
 
     // `Expr10`
-    pub fn parse(parser: &mut Parser) -> Result<Box<dyn ParserExpr>> {
+    pub fn parse(parser: &mut Parser) -> Result<Box<dyn ExprASTNode>> {
         let lhs = op11::parse(parser)?;
         parse_tail(parser, lhs)
     }
 
     // `Expr10'`
-    fn parse_tail(parser: &mut Parser, lhs: Box<dyn ParserExpr>) -> Result<Box<dyn ParserExpr>> {
+    fn parse_tail(parser: &mut Parser, lhs: Box<dyn ExprASTNode>) -> Result<Box<dyn ExprASTNode>> {
         let next = parser.peek()?;
         match next.ty() {
             As => {
-                let lhs = lhs.into_expr();
                 assert_token!(parser, As);
                 let ty = Parser::parse_type(parser)?;
                 let span = Span::new(lhs.span().start(), ty.span().end());
@@ -282,7 +280,7 @@ mod op11 {
     use super::*;
 
     // `Expr11`
-    pub fn parse(parser: &mut Parser) -> Result<Box<dyn ParserExpr>> {
+    pub fn parse(parser: &mut Parser) -> Result<Box<dyn ExprASTNode>> {
         let next = parser.peek()?;
         match next.ty() {
             Minus => {
@@ -306,11 +304,11 @@ mod op11 {
         parser: &mut Parser,
         op: NegOperator,
         start_pos: Position,
-    ) -> Result<Box<dyn ParserExpr>> {
+    ) -> Result<Box<dyn ExprASTNode>> {
         let expr = parse(parser)?;
         let span = Span::new(start_pos, expr.span().end());
 
-        let expr = NegExprASTNode::new(op, expr.into_expr(), span);
+        let expr = NegExprASTNode::new(op, expr, span);
         Ok(Box::new(expr))
     }
 }

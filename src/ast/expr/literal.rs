@@ -139,6 +139,16 @@ impl LiteralBox {
     pub fn ty(&self) -> Type {
         lit_box_auto_impl!(self, LiteralASTNode::ty)
     }
+
+    /// Casts the boxed literal into a boxed expression.
+    pub fn into_expr(self) -> Box<dyn ExprASTNode> {
+        match self {
+            LiteralBox::I32(expr) => expr,
+            LiteralBox::F64(expr) => expr,
+            LiteralBox::Bool(expr) => expr,
+            LiteralBox::Unit(expr) => expr,
+        }
+    }
 }
 
 impl fmt::Display for LiteralBox {

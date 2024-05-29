@@ -9,15 +9,11 @@ use crate::parser::error::{ParserError, RecoverableParserError};
 use crate::parser::{Parser, Result};
 use crate::token::{Position, Span, Token, TokenType::*};
 
-use self::expr_kind::*;
 use self::macros::*;
 
-mod expr_kind;
 mod macros;
 mod ops;
 
-//TODO Get rid of this
-#[allow(clippy::missing_docs_in_private_items)]
 impl Parser {
     /// Consumes the next token from the lexer.
     fn consume(&mut self) -> Result<Token> {
@@ -183,7 +179,7 @@ impl Parser {
         }
     }
 
-    fn parse_item_assignment(&mut self) -> Result<Option<Box<dyn ParserExpr>>> {
+    fn parse_item_assignment(&mut self) -> Result<Option<Box<dyn ExprASTNode>>> {
         let next = self.peek()?;
         match next.ty() {
             Assign => {
@@ -204,7 +200,7 @@ impl Parser {
 
         assert_token!(self, Colon);
         let ty = self.parse_type()?;
-        let value = self.parse_item_assignment()?.map(ParserExpr::into_expr);
+        let value = self.parse_item_assignment()?;
 
         let end_pos = assert_token!(self, Semi).end();
         let span = Span::new(start_pos, end_pos);
@@ -300,7 +296,7 @@ impl Parser {
         //TODO Add support for type inference
         assert_token!(self, Colon);
         let ty = self.parse_type()?;
-        let val = self.parse_item_assignment()?.map(ParserExpr::into_expr);
+        let val = self.parse_item_assignment()?;
 
         let end_pos = match &val {
             Some(val) => val.span().end(),
@@ -337,15 +333,15 @@ impl Parser {
         };
         let span = Span::new(expr.span().start(), end_pos);
 
-        let expr_stmt = ExprStmtASTNode::new(expr.into_expr(), span);
+        let expr_stmt = ExprStmtASTNode::new(expr, span);
         Ok((expr_stmt, semi.is_none()))
     }
 
-    fn parse_expr(&mut self) -> Result<Box<dyn ParserExpr>> {
+    fn parse_expr(&mut self) -> Result<Box<dyn ExprASTNode>> {
         self.parse_expr_wo_block()
     }
 
-    fn parse_expr_wo_block(&mut self) -> Result<Box<dyn ParserExpr>> {
+    fn parse_expr_wo_block(&mut self) -> Result<Box<dyn ExprASTNode>> {
         let next = self.peek()?;
         match next.ty() {
             Minus | Not | IntLit(_) | FloatLit(_) | BoolLit(_) | LPar | Underscore | LBra | If
@@ -359,30 +355,30 @@ impl Parser {
     }
 
     // ExpressionWithoutBlock' rule
-    fn parse_expr_wo_block_(&mut self) -> Result<Box<dyn ParserExpr>> {
+    fn parse_expr_wo_block_(&mut self) -> Result<Box<dyn ExprASTNode>> {
         let next = self.peek()?;
-        match next.ty() {
+        Ok(match next.ty() {
             IntLit(_) | FloatLit(_) | BoolLit(_) => {
                 let lit = self.parse_literal_expr()?;
-                Ok(lit.into_parser_expr())
+                lit.into_expr()
             }
-            Ident(_) => self.parse_path_or_call_expr(),
+            Ident(_) => self.parse_path_or_call_expr()?,
             LPar => {
                 let expr = self.parse_grouped_expr_or_unit_lit()?;
-                Ok(match expr {
+                match expr {
                     Either::Left(expr) => Box::new(expr),
                     Either::Right(lit) => Box::new(lit),
-                })
+                }
             }
             Underscore => {
                 let expr = self.parse_underscore_expr()?;
-                Ok(Box::new(expr))
+                Box::new(expr)
             }
-            _ => unknown_token!(self),
-        }
+            _ => return unknown_token!(self),
+        })
     }
 
-    fn parse_expr_w_block(&mut self) -> Result<Box<dyn ParserExpr>> {
+    fn parse_expr_w_block(&mut self) -> Result<Box<dyn ExprASTNode>> {
         let next = self.peek()?;
         Ok(match next.ty() {
             LBra => Box::new(self.parse_block_expr()?),
@@ -413,7 +409,7 @@ impl Parser {
     }
 
     // Ident' rule
-    fn parse_path_or_call_expr(&mut self) -> Result<Box<dyn ParserExpr>> {
+    fn parse_path_or_call_expr(&mut self) -> Result<Box<dyn ExprASTNode>> {
         let path = Box::new(self.parse_path_expr()?);
         let next = self.peek()?;
         Ok(match next.ty() {
@@ -482,7 +478,7 @@ impl Parser {
         }
     }
 
-    fn parse_operator_expr(&mut self) -> Result<Box<dyn ParserExpr>> {
+    fn parse_operator_expr(&mut self) -> Result<Box<dyn ExprASTNode>> {
         ops::parse_ops(self)
     }
 
@@ -504,7 +500,7 @@ impl Parser {
                 let end_pos = assert_token!(self, RPar).end();
                 let span = Span::new(start_pos, end_pos);
 
-                let expr = GroupedExprASTNode::new(expr.into_expr(), span);
+                let expr = GroupedExprASTNode::new(expr, span);
                 Either::Left(expr)
             }
         })
@@ -519,7 +515,7 @@ impl Parser {
                 Return | Minus | Not | IntLit(_) | FloatLit(_) | BoolLit(_) | LPar | Underscore
                 | LBra | If | Unsafe | Ident(_) | Loop | While => {
                     let expr = self.parse_expr()?;
-                    result.push(expr.into_expr());
+                    result.push(expr);
                 }
                 RPar => return Ok(result),
                 _ => return unknown_token!(self),
@@ -537,7 +533,7 @@ impl Parser {
         }
     }
 
-    fn parse_loop_expr(&mut self) -> Result<Box<dyn ParserExpr>> {
+    fn parse_loop_expr(&mut self) -> Result<Box<dyn ExprASTNode>> {
         let next = self.peek()?;
         Ok(match next.ty() {
             Loop => Box::new(self.parse_inf_loop_expr()?),
@@ -565,7 +561,7 @@ impl Parser {
         let end_pos = body.span().end();
         let span = Span::new(start_pos, end_pos);
 
-        let while_expr = WhileASTNode::new(condition.into_expr(), Box::new(body), span);
+        let while_expr = WhileASTNode::new(condition, Box::new(body), span);
         Ok(while_expr)
     }
 
@@ -584,7 +580,7 @@ impl Parser {
         let span = Span::new(start_pos, end_pos);
 
         Ok(IfASTNode::new(
-            condition.into_expr(),
+            condition,
             Box::new(then_block),
             else_expr,
             span,
@@ -639,7 +635,7 @@ impl Parser {
         Ok(match next.ty() {
             Return | Minus | Not | IntLit(_) | FloatLit(_) | BoolLit(_) | LPar | Underscore
             | LBra | If | Unsafe | Ident(_) | Loop | While => {
-                let expr = self.parse_expr()?.into_expr();
+                let expr = self.parse_expr()?;
                 let span = Span::new(span.start(), expr.span().end());
 
                 ReturnASTNode::new(expr, span)
