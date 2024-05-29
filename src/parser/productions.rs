@@ -563,6 +563,58 @@ impl Parser {
         Ok(while_expr)
     }
 
+    fn parse_if_expr(&mut self) -> Result<IfASTNode> {
+        let start_pos = assert_token!(self, If).start();
+
+        let condition = self.parse_expr()?;
+        let then_block = self.parse_block_expr()?;
+        let else_expr = self.parse_else_expr()?;
+
+        let end_pos = match &else_expr {
+            ElseExpr::None => then_block.span().end(),
+            ElseExpr::Else(block) => block.span().end(),
+            ElseExpr::ElseIf(if_node) => if_node.span().end(),
+        };
+        let span = Span::new(start_pos, end_pos);
+
+        Ok(IfASTNode::new(
+            condition.into_expr(),
+            Box::new(then_block),
+            else_expr,
+            span,
+        ))
+    }
+
+    // IfExpressionTail' & ElseExpression' rules
+    fn parse_else_expr(&mut self) -> Result<ElseExpr> {
+        // IfExpressionTail' rule
+        let next = self.peek()?;
+        Ok(match next.ty() {
+            Else => {
+                assert_token!(self, Else);
+
+                // ElseExpression' rule
+                let next = self.peek()?;
+                match next.ty() {
+                    If => {
+                        let if_node = self.parse_if_expr()?;
+                        ElseExpr::ElseIf(Box::new(if_node))
+                    }
+                    LBra => {
+                        let block = self.parse_block_expr()?;
+                        ElseExpr::Else(Box::new(block))
+                    }
+                    _ => return unknown_token!(self),
+                }
+            }
+            RPar | Comma | LBra | As | Asterisk | Div | Mod | Plus | Minus | BitAnd | BitXor
+            | BitOr | Eq | Ne | Lt | Gt | Le | Ge | And | Or | Assign | RBra | Semi => {
+                ElseExpr::None
+            }
+            _ => return unknown_token!(self),
+        })
+    }
+
     //TODO Implement production rules
 
     fn parse_return(&mut self) -> Result<ReturnASTNode> {
