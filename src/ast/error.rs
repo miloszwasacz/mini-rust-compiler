@@ -1,5 +1,8 @@
 //! A module containing errors & warnings that can occur during semantic analysis on the AST.
 
+use std::error::Error;
+use std::fmt;
+
 use crate::token::Span;
 
 /// An error that can occur during semantic analysis on the AST.
@@ -31,3 +34,32 @@ pub enum SemanticError {
         span: Span,
     },
 }
+
+impl fmt::Display for SemanticError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SemanticError::WrongExpressionKind { message, span } => {
+                write!(f, "Wrong expression kind at {}: {}", span, message)
+            }
+            SemanticError::StaticWithoutInitializer { span } => {
+                write!(f, "Static item declared without an initializer at {}", span)
+            }
+            SemanticError::ExternStaticWithInitializer { span } => {
+                write!(
+                    f,
+                    "Static item declared with an initializer in an extern block at {}",
+                    span
+                )
+            }
+            SemanticError::ExternFunctionWithBody { span } => {
+                write!(
+                    f,
+                    "Function declared with a body in an extern block at {}",
+                    span
+                )
+            }
+        }
+    }
+}
+
+impl Error for SemanticError {}

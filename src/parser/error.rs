@@ -24,8 +24,18 @@ pub enum ParserError {
 
 impl fmt::Display for ParserError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        //TODO Implement fmt::Display for ParserError
-        unimplemented!()
+        match self {
+            ParserError::Aggregated(errs) => {
+                writeln!(f, "Multiple errors occurred during parsing:")?;
+                for err in errs {
+                    writeln!(f, "{}", err)?;
+                }
+                Ok(())
+            }
+            ParserError::LexicalError(err) => fmt::Display::fmt(err, f),
+            ParserError::UnexpectedEOF => write!(f, "Unexpected end of file"),
+            ParserError::UnexpectedToken(tok) => write!(f, "Unexpected token: {}", tok),
+        }
     }
 }
 
@@ -51,8 +61,15 @@ pub enum RecoverableParserError {
 
 impl fmt::Display for RecoverableParserError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        //TODO Implement fmt::Display for RecoverableParserError
-        unimplemented!()
+        match self {
+            RecoverableParserError::SemanticError(err) => fmt::Display::fmt(err, f),
+            RecoverableParserError::MissingToken(expected, pos) => {
+                write!(f, "Expected token {:?} at position {}", expected, pos)
+            }
+            RecoverableParserError::UnsupportedAbi(abi) => {
+                write!(f, "Unsupported ABI: {}", abi)
+            }
+        }
     }
 }
 

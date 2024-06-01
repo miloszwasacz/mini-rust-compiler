@@ -36,6 +36,8 @@
 use std::fmt;
 use std::fmt::Debug;
 
+use debug_tree::{TreeBuilder, TreeConfig, TreeSymbols};
+
 pub use self::crt::*;
 pub use self::expr::*;
 pub use self::item::*;
@@ -66,7 +68,10 @@ impl Crate {
 
 impl fmt::Display for Crate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(self.root.as_ref(), f)
+        let mut builder = TreeBuilder::new();
+        builder.set_config_override(TreeConfig::new().symbols(TreeSymbols::with_rounded()));
+        self.root.add_to_tree_string(&mut builder);
+        write!(f, "{}", builder.string())
     }
 }
 
