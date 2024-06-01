@@ -153,7 +153,7 @@ impl Lexer {
         // Number literals
         if helper::is_digit(c) {
             let mut num_str = c.to_string();
-            self.collect_while(|c| !helper::is_whitespace(c), &mut num_str);
+            self.collect_while(|c| is_xid_continue(c) || c == '.', &mut num_str);
 
             let tt = if num_str.contains('.') {
                 // Floating point literal
@@ -204,24 +204,7 @@ impl Lexer {
         // Identifier or keyword
         if is_xid_start(c) || c == '_' {
             let mut id_str = c.to_string();
-            self.collect_while(|c| !helper::is_whitespace(c), &mut id_str);
-
-            let mut invalid_chars = Vec::new();
-            for (i, c) in id_str.chars().enumerate() {
-                if !is_xid_continue(c) {
-                    invalid_chars.push(Position::new_at(start_pos.line(), start_pos.column() + i));
-                }
-            }
-            if !invalid_chars.is_empty() {
-                let err_kind = LexerErrorKind::InvalidIdentifier {
-                    ident: id_str.into_boxed_str(),
-                    invalid_char_pos: invalid_chars,
-                };
-                return Err(LexerError::new(
-                    err_kind,
-                    Span::new(start_pos, self.position),
-                ));
-            }
+            self.collect_while(is_xid_continue, &mut id_str);
 
             let tt = TokenType::extract_keyword_or_symbol(id_str.as_str())
                 .unwrap_or(TokenType::Ident(id_str.into()));
