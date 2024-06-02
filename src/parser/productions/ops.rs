@@ -310,6 +310,10 @@ mod op11 {
             IntLit(_) | FloatLit(_) | BoolLit(_) | RPar | Underscore | Ident(_) => {
                 Parser::parse_expr_wo_block_(parser)
             }
+            LPar => Ok(match Parser::parse_grouped_expr_or_unit_lit(parser)? {
+                Either::Left(group) => Box::new(group),
+                Either::Right(lit) => Box::new(lit),
+            }),
             LBra | If | Unsafe | Loop | While => Parser::parse_expr_w_block(parser),
             _ => unknown_token!(parser, "'!', '-', <expr>"),
         }
