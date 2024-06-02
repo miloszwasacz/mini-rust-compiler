@@ -14,6 +14,8 @@ use self::macros::*;
 mod macros;
 mod ops;
 
+//TODO Refactor usages of unknown_token! to specify the expected token type better
+
 impl Parser {
     /// Consumes the next token from the lexer.
     fn consume(&mut self) -> Result<Token> {
@@ -68,7 +70,7 @@ impl Parser {
                     result.push(item);
                 }
                 EOF => return Ok(result),
-                _ => return unknown_token!(self),
+                _ => return unknown_token!(self, "<item>"),
             }
         }
     }
@@ -79,7 +81,7 @@ impl Parser {
             Fn => ItemASTNode::Func(Box::new(self.parse_func()?)),
             Static => ItemASTNode::Static(Box::new(self.parse_static(false)?)),
             Extern => ItemASTNode::Extern(Box::new(self.parse_extern()?)),
-            _ => return unknown_token!(self),
+            _ => return unknown_token!(self, "<item>"),
         })
     }
 
@@ -91,16 +93,16 @@ impl Parser {
     }
 
     fn parse_func_proto(&mut self) -> Result<FuncProtoASTNode> {
-        let start_pos = assert_token!(self, Fn).start();
+        let start_pos = assert_token!(self, Fn, "'fn'").start();
 
-        let ident = assert_ident!(self);
+        let ident = assert_ident!(self, "<ident>");
 
-        assert_token!(self, LPar);
+        assert_token!(self, LPar, "'('");
 
         let params = self.parse_func_params()?;
 
         // If there is no return type, the prototype ends with the closing parenthesis.
-        let mut end_pos = assert_token!(self, RPar).end();
+        let mut end_pos = assert_token!(self, RPar, "')'").end();
 
         // If there is a return type, the prototype ends with the return type.
         let ret_ty = self.parse_func_ret_ty()?;
@@ -127,34 +129,35 @@ impl Parser {
                     result.push(param);
                 }
                 RPar => return Ok(result),
-                _ => return unknown_token!(self),
+                _ => return unknown_token!(self, "<fn parameter>"),
             }
 
             // FunctionParameters' rule
             let next = self.peek()?;
             match next.ty() {
-                Comma => assert_token!(self, Comma),
+                Comma => assert_token!(self, Comma, "','"),
                 RPar => return Ok(result),
-                _ => return unknown_token!(self),
+                _ => return unknown_token!(self, "',', ')'"),
             };
         }
     }
 
     fn parse_param(&mut self) -> Result<ParamASTNode> {
         // FunctionParam + FunctionParam' rules
-        let token = self.consume()?;
         let mutability = self.parse_mut()?;
-        let ident = assert_ident_or_underscore!(self);
+        let token = self.consume()?;
+        let ident_span = token.span();
+        let ident = assert_ident_or_underscore!(self, token);
 
         // FunctionParam'' rule
-        assert_token!(self, Colon);
+        assert_token!(self, Colon, "':'");
         let ty = self.parse_type()?;
 
         let assignee: Box<dyn ExprASTNode> = match ident {
-            None => Box::new(UnderscoreASTNode::new(token.span())),
-            Some(ident) => Box::new(PathASTNode::new(ident, token.span())),
+            None => Box::new(UnderscoreASTNode::new(ident_span)),
+            Some(ident) => Box::new(PathASTNode::new(ident, ident_span)),
         };
-        Ok(ParamASTNode::new(assignee, ty, mutability, token.span()))
+        Ok(ParamASTNode::new(assignee, ty, mutability, ident_span))
     }
 
     fn parse_func_ret_ty(&mut self) -> Result<Option<TypeASTMetaNode>> {
@@ -165,7 +168,7 @@ impl Parser {
                 self.consume().expect("Arrow token should be present.");
                 self.parse_type().map(Some)
             }
-            _ => unknown_token!(self),
+            _ => unknown_token!(self, "'->', ';', '{'"),
         }
     }
 
@@ -188,21 +191,21 @@ impl Parser {
                 Ok(Some(expr))
             }
             Semi => Ok(None),
-            _ => unknown_token!(self),
+            _ => unknown_token!(self, "'=', ';'"),
         }
     }
 
     fn parse_static(&mut self, is_extern: bool) -> Result<StaticASTNode> {
-        let start_pos = assert_token!(self, Static).start();
+        let start_pos = assert_token!(self, Static, "'static'").start();
 
         let mutability = self.parse_mut()?;
-        let ident = assert_ident!(self);
+        let ident = assert_ident!(self, "'_', 'mut', <ident>");
 
-        assert_token!(self, Colon);
+        assert_token!(self, Colon, "':'");
         let ty = self.parse_type()?;
         let value = self.parse_item_assignment()?;
 
-        let end_pos = assert_token!(self, Semi).end();
+        let end_pos = assert_token!(self, Semi, "';'").end();
         let span = Span::new(start_pos, end_pos);
 
         let item = match value {
@@ -225,7 +228,7 @@ impl Parser {
     }
 
     fn parse_extern(&mut self) -> Result<ExternASTNode> {
-        let start_pos = assert_token!(self, Extern).start();
+        let start_pos = assert_token!(self, Extern, "'extern'").start();
         let next = self.consume()?;
         let abi = match next.ty() {
             //TODO Add support for other ABIs
@@ -236,12 +239,12 @@ impl Parser {
                     abi.clone()
                 }
             },
-            _ => return unknown_token!(self, next),
+            _ => return unknown_token!(self, next, "<ABI>"),
         };
 
-        assert_token!(self, LBra);
+        assert_token!(self, LBra, "'{'");
         let items = self.parse_extern_items()?;
-        let end_pos = assert_token!(self, RBra).end();
+        let end_pos = assert_token!(self, RBra, "'}'").end();
 
         let span = Span::new(start_pos, end_pos);
         Ok(ExternASTNode::new(abi, items, span))
@@ -261,7 +264,7 @@ impl Parser {
                     result.push(ExternItem::Static(Box::new(item)));
                 }
                 RBra => return Ok(result),
-                _ => return unknown_token!(self),
+                _ => return unknown_token!(self, "<item>"),
             }
         }
     }
@@ -272,29 +275,29 @@ impl Parser {
         let next = self.peek()?;
         match next.ty() {
             Semi => {
-                assert_token!(self, Semi);
+                assert_token!(self, Semi, "';'");
             }
             LBra => {
                 let body_span = self.parse_block_expr()?.span();
                 self.push_rcv_error(
                     SemanticError::ExternFunctionWithBody { span: body_span }.into(),
-                )
+                );
             }
-            _ => return unknown_token!(self),
+            _ => return unknown_token!(self, "';', '{'"),
         }
 
         Ok(proto)
     }
 
     fn parse_let_stmt(&mut self) -> Result<LetASTNode> {
-        let start_pos = assert_token!(self, Let).start();
+        let start_pos = assert_token!(self, Let, "'let'").start();
 
         //TODO Add support for destructuring
         let mutability = self.parse_mut()?;
-        let ident = assert_ident!(self);
+        let ident = assert_ident!(self, "<pattern>");
 
         //TODO Add support for type inference
-        assert_token!(self, Colon);
+        assert_token!(self, Colon, "':'");
         let ty = self.parse_type()?;
         let val = self.parse_item_assignment()?;
 
@@ -350,7 +353,7 @@ impl Parser {
                 let return_expr = self.parse_return()?;
                 Ok(Box::new(return_expr))
             }
-            _ => unknown_token!(self),
+            _ => unknown_token!(self, "<expr>"),
         }
     }
 
@@ -371,7 +374,7 @@ impl Parser {
                 let expr = self.parse_underscore_expr()?;
                 Ok(Box::new(expr))
             }
-            _ => unknown_token!(self),
+            _ => unknown_token!(self, "<expr>"),
         }
     }
 
@@ -382,7 +385,7 @@ impl Parser {
             Loop | While => self.parse_loop_expr()?,
             If => Box::new(self.parse_if_expr()?),
             Unsafe => Box::new(self.parse_unsafe_expr()?),
-            _ => return unknown_token!(self),
+            _ => return unknown_token!(self, "<expr>"),
         })
     }
 
@@ -401,7 +404,7 @@ impl Parser {
             IntLit(val) => box_literal!(i32, *val, token.span()),
             FloatLit(val) => box_literal!(f64, *val, token.span()),
             BoolLit(val) => box_literal!(bool, *val, token.span()),
-            _ => unknown_token!(self, token),
+            _ => unknown_token!(self, token, "<literal>"),
         }
     }
 
@@ -412,11 +415,11 @@ impl Parser {
         Ok(match next.ty() {
             LPar => {
                 // CallExpression' rule
-                assert_token!(self, LPar);
+                assert_token!(self, LPar, "'('");
 
                 let params = self.parse_call_params()?;
 
-                let end_pos = assert_token!(self, RPar).end();
+                let end_pos = assert_token!(self, RPar, "')'").end();
                 let span = Span::new(path.span().start(), end_pos);
 
                 Box::new(FunCallASTNode::new(path, params, span))
@@ -430,16 +433,16 @@ impl Parser {
         let token = self.consume()?;
         match token.ty() {
             Ident(ident) => Ok(PathASTNode::new(ident.clone(), token.span())),
-            _ => unknown_token!(self, token),
+            _ => unknown_token!(self, token, "<path>"),
         }
     }
 
     fn parse_block_expr(&mut self) -> Result<BlockASTNode> {
-        let start_pos = assert_token!(self, LBra).start();
+        let start_pos = assert_token!(self, LBra, "'{'").start();
 
         let (stmts, return_expr) = self.parse_stmts()?;
 
-        let end_pos = assert_token!(self, RBra).end();
+        let end_pos = assert_token!(self, RBra, "'}'").end();
         let span = Span::new(start_pos, end_pos);
 
         Ok(match return_expr {
@@ -458,7 +461,7 @@ impl Parser {
                     statements.push(Box::new(stmt));
                 }
                 Semi => {
-                    assert_token!(self, Semi);
+                    assert_token!(self, Semi, "';'");
                     continue;
                 }
                 RBra => return Ok((statements, None)),
@@ -482,19 +485,19 @@ impl Parser {
     fn parse_grouped_expr_or_unit_lit(
         &mut self,
     ) -> Result<Either<GroupedExprASTNode, LiteralASTNode<()>>> {
-        let start_pos = assert_token!(self, LPar).start();
+        let start_pos = assert_token!(self, LPar, "'('").start();
 
         // GroupedOrUnit rule
         let next = self.peek()?;
         Ok(match next.ty() {
             RPar => {
-                let end_pos = assert_token!(self, RPar).end();
+                let end_pos = assert_token!(self, RPar, "')'").end();
                 let span = Span::new(start_pos, end_pos);
                 Either::Right(LiteralASTNode::<()>::new(span))
             }
             _ => {
                 let expr = self.parse_expr()?;
-                let end_pos = assert_token!(self, RPar).end();
+                let end_pos = assert_token!(self, RPar, "')'").end();
                 let span = Span::new(start_pos, end_pos);
 
                 let expr = GroupedExprASTNode::new(expr, span);
@@ -515,18 +518,16 @@ impl Parser {
                     result.push(expr);
                 }
                 RPar => return Ok(result),
-                _ => return unknown_token!(self),
+                _ => return unknown_token!(self, "<expr>"),
             }
 
             // CallParams' rule
             let next = self.peek()?;
             match next.ty() {
-                Comma => {
-                    assert_token!(self, Comma);
-                }
+                Comma => assert_token!(self, Comma, "','"),
                 RPar => return Ok(result),
-                _ => return unknown_token!(self),
-            }
+                _ => return unknown_token!(self, "',', ')'"),
+            };
         }
     }
 
@@ -535,12 +536,12 @@ impl Parser {
         Ok(match next.ty() {
             Loop => Box::new(self.parse_inf_loop_expr()?),
             While => Box::new(self.parse_pred_loop_expr()?),
-            _ => return unknown_token!(self),
+            _ => return unknown_token!(self, "<loop expr>"),
         })
     }
 
     fn parse_inf_loop_expr(&mut self) -> Result<InfLoopASTNode> {
-        let start_pos = assert_token!(self, Loop).start();
+        let start_pos = assert_token!(self, Loop, "'loop'").start();
         let body = self.parse_block_expr()?;
         let end_pos = body.span().end();
         let span = Span::new(start_pos, end_pos);
@@ -550,11 +551,11 @@ impl Parser {
     }
 
     fn parse_pred_loop_expr(&mut self) -> Result<WhileASTNode> {
-        let start_pos = assert_token!(self, While).start();
-        assert_token!(self, LPar);
+        let start_pos = assert_token!(self, While, "'while'").start();
+
         let condition = self.parse_expr()?;
-        assert_token!(self, RPar);
         let body = self.parse_block_expr()?;
+
         let end_pos = body.span().end();
         let span = Span::new(start_pos, end_pos);
 
@@ -563,7 +564,7 @@ impl Parser {
     }
 
     fn parse_if_expr(&mut self) -> Result<IfASTNode> {
-        let start_pos = assert_token!(self, If).start();
+        let start_pos = assert_token!(self, If, "'if'").start();
 
         let condition = self.parse_expr()?;
         let then_block = self.parse_block_expr()?;
@@ -590,7 +591,7 @@ impl Parser {
         let next = self.peek()?;
         Ok(match next.ty() {
             Else => {
-                assert_token!(self, Else);
+                assert_token!(self, Else, "'else'");
 
                 // ElseExpression' rule
                 let next = self.peek()?;
@@ -603,19 +604,24 @@ impl Parser {
                         let block = self.parse_block_expr()?;
                         ElseExpr::Else(Box::new(block))
                     }
-                    _ => return unknown_token!(self),
+                    _ => return unknown_token!(self, "'if', '{'"),
                 }
             }
             RPar | Comma | LBra | As | Asterisk | Div | Mod | Plus | Minus | BitAnd | BitXor
             | BitOr | Eq | Ne | Lt | Gt | Le | Ge | And | Or | Assign | RBra | Semi => {
                 ElseExpr::None
             }
-            _ => return unknown_token!(self),
+            _ => {
+                return unknown_token!(
+                    self,
+                    "'else', ')', ',', '{', 'as', <operator>, '=', '}', ';'"
+                )
+            }
         })
     }
 
     fn parse_unsafe_expr(&mut self) -> Result<UnsafeBlockASTNode> {
-        let start_pos = assert_token!(self, Unsafe).start();
+        let start_pos = assert_token!(self, Unsafe, "'unsafe'").start();
         let block = self.parse_block_expr()?;
         let end_pos = block.span().end();
         let span = Span::new(start_pos, end_pos);
@@ -625,7 +631,7 @@ impl Parser {
     }
 
     fn parse_return(&mut self) -> Result<ReturnASTNode> {
-        let span = assert_token!(self, Return);
+        let span = assert_token!(self, Return, "'return'");
 
         // ReturnExpressionTail' rule
         let next = self.peek()?;
@@ -638,12 +644,12 @@ impl Parser {
                 ReturnASTNode::new(expr, span)
             }
             RPar | Comma | RBra | Semi => ReturnASTNode::empty(span),
-            _ => return unknown_token!(self),
+            _ => return unknown_token!(self, "<expr>, ';'"),
         })
     }
 
     fn parse_underscore_expr(&mut self) -> Result<UnderscoreASTNode> {
-        let span = assert_token!(self, Underscore);
+        let span = assert_token!(self, Underscore, "'_'");
         Ok(UnderscoreASTNode::new(span))
     }
 
@@ -652,17 +658,17 @@ impl Parser {
         match token.ty() {
             Ident(ident) => match ident.parse::<Type>() {
                 Ok(ty) => Ok(TypeASTMetaNode::new(ty, token.span())),
-                Err(_) => unknown_token!(self, token),
+                Err(_) => unknown_token!(self, token, "<type>"),
             },
             LPar => {
                 //TODO Add support for tuples
-                let end_pos = assert_token!(self, RPar).end();
+                let end_pos = assert_token!(self, RPar, "')'").end();
                 let span = Span::new(token.span().start(), end_pos);
                 Ok(TypeASTMetaNode::new(Type::Unit, span))
             }
             _ => {
                 //TODO Add support for other symbol-based types (e.g. references, slices, etc.)
-                unknown_token!(self, token)
+                unknown_token!(self, token, "<type>")
             }
         }
     }

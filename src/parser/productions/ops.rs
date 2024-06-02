@@ -59,8 +59,9 @@ macro_rules! parse_op {
     (
         $name:ident,
         $next:ident,
-        [ $( ( $op:pat, $ctr:path), )+ ],
+        [ $( ( $op:pat, $expected:expr, $ctr:path), )+ ],
         $empty:pat,
+        $expected_display:expr,
     ) => {
         mod $name {
             use super::*;
@@ -75,7 +76,7 @@ macro_rules! parse_op {
                 match next.ty() {
                     $(
                         $op => {
-                            assert_token!(parser, $op);
+                            assert_token!(parser, $op, $expected);
                             let rhs = $next::parse(parser)?;
                             let span = Span::new(lhs.span().start(), rhs.span().end());
 
@@ -84,7 +85,7 @@ macro_rules! parse_op {
                         },
                     )+
                     $empty => Ok(lhs),
-                    _ => unknown_token!(parser),
+                    _ => unknown_token!(parser, $expected_display),
                 }
             }
         }
@@ -95,19 +96,21 @@ macro_rules! parse_op {
         $name:ident,
         $next:ident,
         [
-            ( $first_op:pat, $first_ctr:path )
-            $( ,( $op:pat, $ctr:path) )*
+            ( $first_op:pat, $first_expected:expr, $first_ctr:path )
+            $( ,( $op:pat, $expected:expr, $ctr:path) )*
         ],
         $empty:pat,
+        $expected_display:expr,
     ) => {
         parse_op!(
             $name,
             $next,
             [
-                ( $first_op, $first_ctr )
-                $(, ( $op, $ctr) )*,
+                ( $first_op, $first_expected, $first_ctr )
+                $(, ( $op, $expected, $ctr) )*,
             ],
             $empty,
+            $expected_display,
         );
     };
 }
@@ -121,24 +124,27 @@ pub fn parse_ops(parser: &mut Parser) -> Result<Box<dyn ExprASTNode>> {
 parse_op!(
     op1,
     op2,
-    [(Assign, ctr::assign)],
-    LBra | LPar | Comma | RBra | Semi,
+    [(Assign, "'='", ctr::assign)],
+    LBra | RPar | Comma | RBra | Semi,
+    "'=', '{', '(', ',', '}', ';'",
 );
 
 // `Expr2` and `Expr2'`
 parse_op!(
     op2,
     op3,
-    [(Or, ctr::lazy_or)],
-    LBra | LPar | Comma | RBra | Semi | Assign,
+    [(Or, "'||'", ctr::lazy_or)],
+    LBra | RPar | Comma | RBra | Semi | Assign,
+    "'||', '=', '{', '(', ',', '}', ';'",
 );
 
 // `Expr3` and `Expr3'`
 parse_op!(
     op3,
     op4,
-    [(And, ctr::lazy_and)],
-    LBra | LPar | Comma | RBra | Semi | Assign | Or,
+    [(And, "'&&'", ctr::lazy_and)],
+    LBra | RPar | Comma | RBra | Semi | Assign | Or,
+    "<operator>, '=', '{', '(', ',', '}', ';'",
 );
 
 // `Expr4` and `Expr4'`
@@ -146,38 +152,41 @@ parse_op!(
     op4,
     op5,
     [
-        (Eq, ctr::eq),
-        (Ne, ctr::ne),
-        (Gt, ctr::gt),
-        (Lt, ctr::lt),
-        (Ge, ctr::ge),
-        (Le, ctr::le)
+        (Eq, "'=='", ctr::eq),
+        (Ne, "'!='", ctr::ne),
+        (Gt, "'>'", ctr::gt),
+        (Lt, "'<'", ctr::lt),
+        (Ge, "'>='", ctr::ge),
+        (Le, "'<='", ctr::le)
     ],
-    LBra | LPar | Comma | RBra | Semi | Assign | Or | And,
+    LBra | RPar | Comma | RBra | Semi | Assign | Or | And,
+    "<operator>, '=', '{', '(', ',', '}', ';'",
 );
 
 // `Expr5` and `Expr5'`
 parse_op!(
     op5,
     op6,
-    [(BitOr, ctr::bit_or)],
-    LBra | LPar | Comma | RBra | Semi | Assign | Or | And | Eq | Ne | Gt | Lt | Ge | Le,
+    [(BitOr, "'|'", ctr::bit_or)],
+    LBra | RPar | Comma | RBra | Semi | Assign | Or | And | Eq | Ne | Gt | Lt | Ge | Le,
+    "<operator>, '=', '{', '(', ',', '}', ';'",
 );
 
 // `Expr6` and `Expr6'`
 parse_op!(
     op6,
     op7,
-    [(BitXor, ctr::bit_xor)],
-    LBra | LPar | Comma | RBra | Semi | Assign | Or | And | Eq | Ne | Gt | Lt | Ge | Le | BitOr,
+    [(BitXor, "'^'", ctr::bit_xor)],
+    LBra | RPar | Comma | RBra | Semi | Assign | Or | And | Eq | Ne | Gt | Lt | Ge | Le | BitOr,
+    "<operator>, '=', '{', '(', ',', '}', ';'",
 );
 
 // `Expr7` and `Expr7'`
 parse_op!(
     op7,
     op8,
-    [(BitAnd, ctr::bit_and)],
-    LBra | LPar
+    [(BitAnd, "'&'", ctr::bit_and)],
+    LBra | RPar
         | Comma
         | RBra
         | Semi
@@ -192,14 +201,15 @@ parse_op!(
         | Le
         | BitOr
         | BitXor,
+    "<operator>, '=', '{', '(', ',', '}', ';'",
 );
 
 // `Expr8` and `Expr8'`
 parse_op!(
     op8,
     op9,
-    [(Plus, ctr::add), (Minus, ctr::sub)],
-    LBra | LPar
+    [(Plus, "'+'", ctr::add), (Minus, "'-'", ctr::sub)],
+    LBra | RPar
         | Comma
         | RBra
         | Semi
@@ -215,14 +225,19 @@ parse_op!(
         | BitOr
         | BitXor
         | BitAnd,
+    "<operator>, '=', '{', '(', ',', '}', ';'",
 );
 
 // `Expr9` and `Expr9'`
 parse_op!(
     op9,
     op10,
-    [(Asterisk, ctr::mul), (Div, ctr::div), (Mod, ctr::rem)],
-    LBra | LPar
+    [
+        (Asterisk, "'*'", ctr::mul),
+        (Div, "'/'", ctr::div),
+        (Mod, "'%'", ctr::rem)
+    ],
+    LBra | RPar
         | Comma
         | RBra
         | Semi
@@ -240,6 +255,7 @@ parse_op!(
         | BitAnd
         | Plus
         | Minus,
+    "<operator>, '=', '{', '(', ',', '}', ';'",
 );
 
 // `Expr10` and `Expr10'`
@@ -259,16 +275,16 @@ mod op10 {
         let next = parser.peek()?;
         match next.ty() {
             As => {
-                assert_token!(parser, As);
+                assert_token!(parser, As, "'as'");
                 let ty = Parser::parse_type(parser)?;
                 let span = Span::new(lhs.span().start(), ty.span().end());
 
                 let lhs = Box::new(TypeCastASTNode::new(lhs, ty, span));
                 parse_tail(parser, lhs)
             }
-            LBra | LPar | Comma | RBra | Semi | Assign | Or | And | Eq | Ne | Gt | Lt | Ge | Le
+            LBra | RPar | Comma | RBra | Semi | Assign | Or | And | Eq | Ne | Gt | Lt | Ge | Le
             | BitOr | BitXor | BitAnd | Plus | Minus | Asterisk | Div | Mod => Ok(lhs),
-            _ => unknown_token!(parser),
+            _ => unknown_token!(parser, "<operator>, '=', '{', '(', ',', '}', ';', 'as'"),
         }
     }
 }
@@ -284,18 +300,18 @@ mod op11 {
         let next = parser.peek()?;
         match next.ty() {
             Minus => {
-                let start_pos = assert_token!(parser, Minus).start();
+                let start_pos = assert_token!(parser, Minus, "'-'").start();
                 parse_negation(parser, NegOperator::Neg, start_pos)
             }
             Not => {
-                let start_pos = assert_token!(parser, Not).start();
+                let start_pos = assert_token!(parser, Not, "'!'").start();
                 parse_negation(parser, NegOperator::Not, start_pos)
             }
-            IntLit(_) | FloatLit(_) | BoolLit(_) | LPar | Underscore | Ident(_) => {
+            IntLit(_) | FloatLit(_) | BoolLit(_) | RPar | Underscore | Ident(_) => {
                 Parser::parse_expr_wo_block_(parser)
             }
             LBra | If | Unsafe | Loop | While => Parser::parse_expr_w_block(parser),
-            _ => unknown_token!(parser),
+            _ => unknown_token!(parser, "'!', '-', <expr>"),
         }
     }
 

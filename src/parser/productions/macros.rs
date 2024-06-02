@@ -6,14 +6,17 @@
 /// [`ParserError::UnexpectedToken`](crate::parser::ParserError::UnexpectedToken)
 /// with the consumed token.
 macro_rules! unknown_token {
-    ($self:expr) => {{
+    ($self:expr, $expected:expr) => {{
         let token = $self
             .consume()
             .expect("Unsuccessful consuming after successful peeking should be impossible.");
-        unknown_token!($self, token)
+        unknown_token!($self, token, $expected)
     }};
-    ($self:expr, $token:expr) => {
-        Err(ParserError::UnexpectedToken($token))
+    ($self:expr, $token:expr, $expected:expr) => {
+        Err(ParserError::UnexpectedToken {
+            actual: $token,
+            expected: $expected,
+        })
     };
 }
 
@@ -26,14 +29,14 @@ macro_rules! unknown_token {
 /// If the consumed token does not match the expected token type, [`unknown_token`] is returned
 /// by the calling function (using the `?` operator).
 macro_rules! assert_token {
-    ($self:expr, $expected:pat) => {{
+    ($self:expr, $expected:pat, $expected_display:expr) => {{
         let token = $self.consume()?;
-        assert_token!($self, token, $expected)
+        assert_token!($self, token, $expected, $expected_display)
     }};
-    ($self:expr, $token:expr, $expected:pat) => {
+    ($self:expr, $token:expr, $expected:pat, $expected_display:expr) => {
         match $token.ty() {
             $expected => $token.span(),
-            _ => unknown_token!($self, $token)?,
+            _ => unknown_token!($self, $token, $expected_display)?,
         }
     };
 }
@@ -66,14 +69,14 @@ macro_rules! expect_token {
 /// If the consumed token is not an identifier, [`unknown_token`] is returned
 /// by the calling function (using the `?` operator).
 macro_rules! assert_ident {
-    ($self:expr) => {{
+    ($self:expr, $expected_display:expr) => {{
         let token = $self.consume()?;
-        assert_ident!($self, token)
+        assert_ident!($self, token, $expected_display)
     }};
-    ($self:expr, $token:expr) => {
+    ($self:expr, $token:expr, $expected_display:expr) => {
         match $token.ty() {
             Ident(ident) => ident.clone(),
-            _ => unknown_token!($self, $token)?,
+            _ => unknown_token!($self, $token, $expected_display)?,
         }
     };
 }
@@ -95,7 +98,8 @@ macro_rules! assert_ident_or_underscore {
         match $token.ty() {
             Ident(ident) => Some(ident.clone()),
             Underscore => None,
-            _ => unknown_token!($self, $token)?,
+            //TODO Improve error message
+            _ => unknown_token!($self, $token, "<pattern>")?,
         }
     };
 }

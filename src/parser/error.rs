@@ -19,7 +19,12 @@ pub enum ParserError {
     /// Unexpected end of file.
     UnexpectedEOF,
     /// An unexpected token was encountered.
-    UnexpectedToken(Token),
+    UnexpectedToken {
+        /// The unexpected token.
+        actual: Token,
+        /// The expected token type.
+        expected: &'static str,
+    },
 }
 
 impl fmt::Display for ParserError {
@@ -34,7 +39,9 @@ impl fmt::Display for ParserError {
             }
             ParserError::LexicalError(err) => fmt::Display::fmt(err, f),
             ParserError::UnexpectedEOF => write!(f, "Unexpected end of file"),
-            ParserError::UnexpectedToken(tok) => write!(f, "Unexpected token: {}", tok),
+            ParserError::UnexpectedToken { actual, expected } => {
+                write!(f, "Expected {}, got {}", expected, actual)
+            }
         }
     }
 }
