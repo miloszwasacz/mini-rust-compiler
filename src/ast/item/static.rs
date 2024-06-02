@@ -80,6 +80,6 @@ impl ASTNode for StaticASTNode {
 impl fmt::Display for StaticASTNode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mutability = if self.mutable { "Mut" } else { "" };
-        write!(f, "Static{} {}", mutability, self.span)
+        write!(f, "Static {} {} \"{}\"", mutability, self.span, self.name())
     }
 }

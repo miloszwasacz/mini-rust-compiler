@@ -101,7 +101,7 @@ mod macros {
                     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                         write!(
                             f,
-                            "Operator ({}) {} {}",
+                            "Operator ({}) {} `{}`",
                             $label,
                             self.span,
                             self.operator.as_str(),

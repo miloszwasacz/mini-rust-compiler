@@ -51,6 +51,6 @@ impl ValueExprASTNode for TypeCastASTNode {}
 
 impl fmt::Display for TypeCastASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Type Cast {} {}", self.span, self.ty)
+        write!(f, "Type Cast {} `{}`", self.span, self.ty)
     }
 }

@@ -2,6 +2,8 @@
 
 use std::{fmt, iter};
 
+use debug_tree::TreeBuilder;
+
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
     ValueExprASTNode,
@@ -41,6 +43,24 @@ impl ASTNode for AssignASTNode {
         let value = iter::once(self.value.as_ast());
         let iter = assignee.chain(value);
         Some(Box::new(iter))
+    }
+
+    fn add_to_tree_string(&self, builder: &mut TreeBuilder) {
+        let assignee = self.assignee.as_ast();
+        let value = self.value.as_ast();
+
+        let mut branch = builder.add_branch(format!("{self}").as_str());
+        {
+            let mut branch = builder.add_branch("Assignee");
+            assignee.add_to_tree_string(builder);
+            branch.release()
+        }
+        {
+            let mut branch = builder.add_branch("Value");
+            value.add_to_tree_string(builder);
+            branch.release()
+        }
+        branch.release();
     }
 }
 

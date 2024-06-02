@@ -79,7 +79,7 @@ impl fmt::Display for NegExprASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "Operator (Negation) {} {}",
+            "Operator (Negation) {} `{}`",
             self.span,
             self.operator.as_str(),
         )

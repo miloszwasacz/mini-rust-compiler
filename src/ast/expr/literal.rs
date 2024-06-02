@@ -53,7 +53,7 @@ macro_rules! impl_ast {
 
             impl fmt::Display for LiteralASTNode<$ty> {
                 fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                    write!(f, "Literal {} {} {}", self.span, self.ty, self.value)
+                    write!(f, "Literal {} `{}` \"{}\"", self.span, self.ty, self.value)
                 }
             }
         }

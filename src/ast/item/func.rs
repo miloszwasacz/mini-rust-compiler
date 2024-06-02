@@ -2,6 +2,8 @@
 
 use std::{fmt, iter};
 
+use debug_tree::TreeBuilder;
+
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AsASTNode, BlockASTNode, FuncProtoASTNode,
 };
@@ -30,10 +32,24 @@ impl ASTNode for FuncASTNode {
     ast_defaults!();
 
     fn children(&self) -> Option<ASTChildIterator> {
-        let params = iter::once(self.proto.as_ast());
+        let proto = iter::once(self.proto.as_ast());
         let body = iter::once(self.body.as_ast());
-        let iter = params.chain(body);
+        let iter = proto.chain(body);
         Some(Box::new(iter))
+    }
+
+    fn add_to_tree_string(&self, builder: &mut TreeBuilder) {
+        let proto = self.proto.as_ast();
+        let body = self.body.as_ast();
+
+        let mut branch = builder.add_branch(format!("{self}").as_str());
+        proto.add_to_tree_string(builder);
+        {
+            let mut branch = builder.add_branch("Body");
+            body.add_to_tree_string(builder);
+            branch.release();
+        }
+        branch.release();
     }
 }
 

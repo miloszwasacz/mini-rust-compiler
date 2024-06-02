@@ -57,6 +57,6 @@ impl ASTNode for FuncProtoASTNode {
 
 impl fmt::Display for FuncProtoASTNode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Function Prototype: {}", self.name)
+        write!(f, "Function Prototype: \"{}\"", self.name)
     }
 }

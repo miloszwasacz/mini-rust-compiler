@@ -60,6 +60,6 @@ impl ValueExprASTNode for FunCallASTNode {}
 
 impl fmt::Display for FunCallASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Function Call {} {}", self.span, self.path())
+        write!(f, "Function Call {} \"{}\"", self.span, self.path())
     }
 }

@@ -2,6 +2,8 @@
 
 use std::{fmt, iter};
 
+use debug_tree::TreeBuilder;
+
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, StatementASTNode, Type, TypeASTMetaNode,
 };
@@ -73,6 +75,24 @@ impl ASTNode for LetASTNode {
         let iter = decl.chain(value);
         Some(Box::new(iter))
     }
+
+    fn add_to_tree_string(&self, builder: &mut TreeBuilder) {
+        let decl = self.decl.as_ast();
+        let value = self.value.as_ref().map(|v| v.as_ast());
+
+        let mut branch = builder.add_branch(format!("{self}").as_str());
+        {
+            let mut branch = builder.add_branch("Declaration");
+            decl.add_to_tree_string(builder);
+            branch.release()
+        }
+        if let Some(value) = value {
+            let mut branch = builder.add_branch("Value");
+            value.add_to_tree_string(builder);
+            branch.release()
+        }
+        branch.release()
+    }
 }
 
 impl StatementASTNode for LetASTNode {}
@@ -80,6 +100,6 @@ impl StatementASTNode for LetASTNode {}
 impl fmt::Display for LetASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mutability = if self.mutable { "Mut" } else { "" };
-        write!(f, "Let{} {}", mutability, self.span)
+        write!(f, "Let {} {}", mutability, self.span)
     }
 }

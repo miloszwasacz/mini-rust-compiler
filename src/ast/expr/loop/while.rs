@@ -2,6 +2,8 @@
 
 use std::{fmt, iter};
 
+use debug_tree::TreeBuilder;
+
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AsASTNode, AssigneeExprASTNode, BlockASTNode,
     ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
@@ -13,20 +15,20 @@ use crate::token::Span;
 pub struct WhileASTNode {
     /// The condition can be [any kind of expression](ExprASTNode).
     condition: Box<dyn ExprASTNode>,
-    block: Box<BlockASTNode>,
+    body: Box<BlockASTNode>,
     span: Span,
 }
 
 impl WhileASTNode {
-    /// Creates a new `WhileASTNode` with the given condition, block and span.
+    /// Creates a new `WhileASTNode` with the given condition, body and span.
     pub fn new(
         condition: Box<dyn ExprASTNode>,
-        block: Box<BlockASTNode>,
+        body: Box<BlockASTNode>,
         span: Span,
     ) -> WhileASTNode {
         WhileASTNode {
             condition,
-            block,
+            body,
             span,
         }
     }
@@ -37,9 +39,27 @@ impl ASTNode for WhileASTNode {
 
     fn children(&self) -> Option<ASTChildIterator> {
         let condition = iter::once(self.condition.as_ast());
-        let block = iter::once(self.block.as_ast());
-        let iter = condition.chain(block);
+        let body = iter::once(self.body.as_ast());
+        let iter = condition.chain(body);
         Some(Box::new(iter))
+    }
+
+    fn add_to_tree_string(&self, builder: &mut TreeBuilder) {
+        let condition = self.condition.as_ast();
+        let body = self.body.as_ast();
+
+        let mut branch = builder.add_branch(format!("{self}").as_str());
+        {
+            let mut branch = builder.add_branch("Condition");
+            condition.add_to_tree_string(builder);
+            branch.release()
+        }
+        {
+            let mut branch = builder.add_branch("Body");
+            body.add_to_tree_string(builder);
+            branch.release()
+        }
+        branch.release()
     }
 }
 

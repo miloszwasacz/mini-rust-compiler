@@ -43,6 +43,6 @@ impl StatementASTNode for ExprStmtASTNode {}
 
 impl fmt::Display for ExprStmtASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ExprStmt {}", self.span)
+        write!(f, "Expression Statement {}", self.span)
     }
 }

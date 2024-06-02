@@ -57,6 +57,6 @@ impl AssigneeExprASTNode for PathASTNode {}
 
 impl std::fmt::Display for PathASTNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Path {} {}", self.span, self.path)
+        write!(f, "Path {} \"{}\"", self.span, self.path)
     }
 }
