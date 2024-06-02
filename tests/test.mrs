@@ -1,14 +1,28 @@
 extern "C" {
     fn print(n: i32);
+
+    static mut X: i32;
 }
+
+static Y: f64 = 0;
 
 fn main() {
     let mut n: i32 = 0;
-    while n < 10 {
+    while n < (9 + 1) {
         n = n + 1;
         if n % 2 == 0 {
-            let ń = n;
+            let ń: f64 = n as f64;
             unsafe { print(ń) };
+        } else if n % 3 == 0 {
+            unsafe { print(-n) };
+        } else if unsafe { n > X } {
+            loop {
+                let _: i32 = n;
+                unsafe { print(X) };
+                return;
+            }
+        } else {
+            unsafe { print(-Y) };
         }
     }
 }
