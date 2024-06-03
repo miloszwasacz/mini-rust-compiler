@@ -2,10 +2,14 @@
 
 use std::{fmt, iter};
 
+use inkwell::values::AnyValueEnum;
+
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
     TypeASTMetaNode, ValueExprASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing a type cast.
@@ -48,6 +52,12 @@ impl ExprASTNode for TypeCastASTNode {
 }
 
 impl ValueExprASTNode for TypeCastASTNode {}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for TypeCastASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
+    }
+}
 
 impl fmt::Display for TypeCastASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

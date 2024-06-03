@@ -3,6 +3,8 @@
 use std::{fmt, iter};
 
 use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, TypeASTMetaNode};
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing a function parameter.
@@ -48,6 +50,12 @@ impl ASTNode for ParamASTNode {
     fn children(&self) -> Option<ASTChildIterator> {
         let iter = iter::once(self.assignee.as_ast());
         Some(Box::new(iter))
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, ()> for ParamASTNode {
+    fn code_gen(&self, _state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        todo!()
     }
 }
 

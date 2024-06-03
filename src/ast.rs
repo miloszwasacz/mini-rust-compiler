@@ -81,6 +81,7 @@ mod node {
 
     use debug_tree::TreeBuilder;
 
+    use crate::codegen::CodeGen;
     use crate::token::Span;
 
     /// A type alias for an iterator over the children of an AST node.
@@ -88,7 +89,7 @@ mod node {
 
     //TODO Add examples to all the doc comments.
     /// A trait defining the common interface for all AST nodes.
-    pub trait ASTNode: AsASTNode + fmt::Debug + fmt::Display {
+    pub trait ASTNode: AsASTNode + for<'ctx> CodeGen<'ctx, ()> + fmt::Debug + fmt::Display {
         /// Returns the span that defines the location of this AST node.
         fn span(&self) -> Span;
 

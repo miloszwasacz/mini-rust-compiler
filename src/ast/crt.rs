@@ -4,6 +4,8 @@ use std::fmt;
 use std::rc::Rc;
 
 use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AsASTNode, ItemASTNode};
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing a crate.
@@ -32,6 +34,12 @@ impl ASTNode for CrateASTNode {
     fn children(&self) -> Option<ASTChildIterator> {
         let iter = self.items.iter().map(|i| i.as_ast());
         Some(Box::new(iter))
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, ()> for CrateASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        todo!()
     }
 }
 

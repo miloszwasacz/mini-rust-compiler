@@ -14,3 +14,4 @@ either = "1.12"
 fallible-iterator = "0.3"
 unicode-ident = "1.0"
 debug_tree = "0.4"
+inkwell = { version = "0.4.0", features = ["llvm16-0"] }

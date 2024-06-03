@@ -2,9 +2,13 @@
 
 use std::fmt;
 
+use inkwell::values::AnyValueEnum;
+
 use crate::ast::{
     ASTNode, AssigneeExprASTNode, BlockASTNode, ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing an unsafe block expression.
@@ -46,6 +50,12 @@ impl ExprASTNode for UnsafeBlockASTNode {
 }
 
 impl ValueExprASTNode for UnsafeBlockASTNode {}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for UnsafeBlockASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
+    }
+}
 
 impl fmt::Display for UnsafeBlockASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

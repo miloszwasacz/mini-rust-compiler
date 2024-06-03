@@ -3,6 +3,8 @@
 use std::{fmt, iter};
 
 use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, StatementASTNode};
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing an expression statement.
@@ -40,6 +42,12 @@ impl ASTNode for ExprStmtASTNode {
 }
 
 impl StatementASTNode for ExprStmtASTNode {}
+
+impl<'ctx> CodeGen<'ctx, ()> for ExprStmtASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        self.expr.code_gen(state)
+    }
+}
 
 impl fmt::Display for ExprStmtASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

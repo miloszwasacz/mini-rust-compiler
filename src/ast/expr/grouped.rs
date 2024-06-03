@@ -2,9 +2,13 @@
 
 use std::{fmt, iter};
 
+use inkwell::values::AnyValueEnum;
+
 use crate::ast::{
     ast_defaults, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing a grouped expression (i.e. an expression wrapped in parentheses).
@@ -46,6 +50,12 @@ impl ExprASTNode for GroupedExprASTNode {
 }
 
 impl ValueExprASTNode for GroupedExprASTNode {}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for GroupedExprASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
+    }
+}
 
 impl fmt::Display for GroupedExprASTNode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

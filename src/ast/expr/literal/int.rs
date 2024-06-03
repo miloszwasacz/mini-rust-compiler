@@ -1,6 +1,10 @@
 //! A concrete implementation of [LiteralASTNode] for integers.
 
+use inkwell::values::AnyValueEnum;
+
 use crate::ast::Type;
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 use super::{impl_ast, LiteralASTNode};
@@ -13,3 +17,9 @@ impl LiteralASTNode<i32> {
 }
 
 impl_ast!(i32);
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for LiteralASTNode<i32> {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
+    }
+}

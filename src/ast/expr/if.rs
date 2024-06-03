@@ -3,11 +3,14 @@
 use std::{fmt, iter};
 
 use debug_tree::TreeBuilder;
+use inkwell::values::AnyValueEnum;
 
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AsASTNode, AssigneeExprASTNode, BlockASTNode,
     ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing an if expression.
@@ -158,6 +161,12 @@ impl ExprASTNode for IfASTNode {
 }
 
 impl ValueExprASTNode for IfASTNode {}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for IfASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
+    }
+}
 
 impl fmt::Display for IfASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

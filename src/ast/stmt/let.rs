@@ -7,6 +7,8 @@ use debug_tree::TreeBuilder;
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, StatementASTNode, Type, TypeASTMetaNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing a let statement.
@@ -96,6 +98,12 @@ impl ASTNode for LetASTNode {
 }
 
 impl StatementASTNode for LetASTNode {}
+
+impl<'ctx> CodeGen<'ctx, ()> for LetASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        todo!()
+    }
+}
 
 impl fmt::Display for LetASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -2,10 +2,14 @@
 
 use std::fmt;
 
+use inkwell::values::AnyValueEnum;
+
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
     StatementASTNode, ValueExprASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// A type alias for a list of statements.
@@ -72,6 +76,12 @@ impl ExprASTNode for BlockASTNode {
 }
 
 impl ValueExprASTNode for BlockASTNode {}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for BlockASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
+    }
+}
 
 impl fmt::Display for BlockASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -1,5 +1,10 @@
 //! A module containing Arithmetic or Logical operator AST node implementation.
 
+use inkwell::values::AnyValueEnum;
+
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
+
 use super::{bin_op_ast_node, operator_display, BinOperator};
 
 /// An enum representing either an arithmetic or a logical binary operator.
@@ -45,5 +50,11 @@ bin_op_ast_node! {
     ArithExprASTNode {
         operator: ArithOperator,
         label: "Arithmetic or Logical",
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for ArithExprASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
     }
 }

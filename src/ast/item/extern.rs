@@ -6,6 +6,8 @@ use std::rc::Rc;
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AsASTNode, FuncProtoASTNode, StaticASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing an extern block.
@@ -43,6 +45,12 @@ impl ASTNode for ExternASTNode {
     fn children(&self) -> Option<ASTChildIterator> {
         let iter = self.items.iter().map(|i| i.as_ast());
         Some(Box::new(iter))
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, ()> for ExternASTNode {
+    fn code_gen(&self, _state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        todo!()
     }
 }
 

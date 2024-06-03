@@ -3,11 +3,14 @@
 use std::{fmt, iter};
 
 use debug_tree::TreeBuilder;
+use inkwell::values::AnyValueEnum;
 
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
     ValueExprASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing an assignment.
@@ -79,6 +82,12 @@ impl ExprASTNode for AssignASTNode {
 }
 
 impl ValueExprASTNode for AssignASTNode {}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for AssignASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
+    }
+}
 
 impl fmt::Display for AssignASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

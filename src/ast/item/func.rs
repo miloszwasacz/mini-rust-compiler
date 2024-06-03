@@ -7,6 +7,8 @@ use debug_tree::TreeBuilder;
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AsASTNode, BlockASTNode, FuncProtoASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node for a function declaration.
@@ -50,6 +52,12 @@ impl ASTNode for FuncASTNode {
             branch.release();
         }
         branch.release();
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, ()> for FuncASTNode {
+    fn code_gen(&self, _state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        todo!()
     }
 }
 

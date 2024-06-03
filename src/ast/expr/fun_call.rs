@@ -2,10 +2,14 @@
 
 use std::fmt;
 
+use inkwell::values::AnyValueEnum;
+
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PathASTNode,
     PlaceExprASTNode, ValueExprASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing a function call.
@@ -57,6 +61,12 @@ impl ExprASTNode for FunCallASTNode {
 }
 
 impl ValueExprASTNode for FunCallASTNode {}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for FunCallASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
+    }
+}
 
 impl fmt::Display for FunCallASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

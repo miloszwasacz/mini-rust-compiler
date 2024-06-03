@@ -2,10 +2,14 @@
 
 use std::fmt;
 
+use inkwell::values::AnyValueEnum;
+
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
     ValueExprASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing an underscore.
@@ -44,6 +48,12 @@ impl ExprASTNode for UnderscoreASTNode {
 }
 
 impl AssigneeExprASTNode for UnderscoreASTNode {}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for UnderscoreASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
+    }
+}
 
 impl fmt::Display for UnderscoreASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

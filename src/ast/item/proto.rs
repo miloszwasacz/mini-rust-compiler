@@ -4,6 +4,8 @@ use std::fmt;
 use std::rc::Rc;
 
 use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AsASTNode, TypeASTMetaNode};
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 pub use self::param::*;
@@ -52,6 +54,12 @@ impl ASTNode for FuncProtoASTNode {
     fn children(&self) -> Option<ASTChildIterator> {
         let iter = self.params.iter().map(|p| p.as_ast());
         Some(Box::new(iter))
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, ()> for FuncProtoASTNode {
+    fn code_gen(&self, _state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        todo!()
     }
 }
 

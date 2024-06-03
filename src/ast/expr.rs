@@ -1,6 +1,12 @@
 //! A module containing all the expression-related AST nodes.
 
+use inkwell::values::AnyValueEnum;
+
+use codegen::CodeGenState;
+
 use crate::ast::ASTNode;
+use crate::codegen;
+use crate::codegen::CodeGen;
 
 pub use self::assign::*;
 pub use self::block::*;
@@ -43,6 +49,8 @@ mod unsafe_block;
 /// #     ASTNode, ASTChildIterator, ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
 /// #     AssigneeExprASTNode
 /// # };
+/// # use mini_rust_compiler_components::codegen;
+/// # use inkwell::values::AnyValueEnum;
 ///
 /// # #[derive(Debug)]
 /// struct MyExprASTNode;
@@ -71,6 +79,11 @@ mod unsafe_block;
 /// #     fn span(&self) -> Span { unimplemented!() }
 /// #     fn children(&self) -> Option<ASTChildIterator> { unimplemented!() }
 /// # }
+/// # impl<'ctx> codegen::CodeGen<'ctx, AnyValueEnum<'ctx>> for MyExprASTNode {
+/// #     fn code_gen<'a>(&self, state: &mut codegen::CodeGenState<'a>) -> codegen::Result<AnyValueEnum<'ctx>> {
+/// #         unimplemented!()
+/// #     }
+/// # }
 /// # impl fmt::Display for MyExprASTNode {
 /// #    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { unimplemented!() }
 /// # }
@@ -90,7 +103,9 @@ mod unsafe_block;
 /// assert!(std::ptr::eq(assignee.unwrap(), &my_expr));
 /// # }
 /// ```
-pub trait ExprASTNode: ASTNode + AsExprASTNode {
+pub trait ExprASTNode:
+    ASTNode + for<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> + AsExprASTNode
+{
     /// Tries to convert the expression to a [`PlaceExprASTNode`].
     fn try_as_place(&self) -> Option<&dyn PlaceExprASTNode>;
 
@@ -133,5 +148,11 @@ pub trait AsExprASTNode {
 impl<T: ExprASTNode> AsExprASTNode for T {
     fn as_expr(&self) -> &dyn ExprASTNode {
         self
+    }
+}
+
+impl<'ctx, T: ExprASTNode> CodeGen<'ctx, ()> for T {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        CodeGen::<AnyValueEnum>::code_gen(self, state).map(|_| ())
     }
 }

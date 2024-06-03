@@ -1,5 +1,10 @@
 //! A module containing Lazy Boolean operator AST node implementation.
 
+use inkwell::values::AnyValueEnum;
+
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
+
 use super::{bin_op_ast_node, operator_display, BinOperator};
 
 /// An enum representing a lazy boolean operator.
@@ -27,5 +32,11 @@ bin_op_ast_node! {
     LazyBoolExprASTNode {
         operator: LazyBoolOperator,
         label: "Lazy Boolean",
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for LazyBoolExprASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
     }
 }

@@ -1,5 +1,10 @@
 //! A module containing Comparison operator AST node implementation.
 
+use inkwell::values::AnyValueEnum;
+
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
+
 use super::{bin_op_ast_node, operator_display, BinOperator};
 
 /// An enum representing a comparison operator.
@@ -39,5 +44,11 @@ bin_op_ast_node! {
     CompExprASTNode {
         operator: CompOperator,
         label: "Comparison",
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for CompExprASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
     }
 }

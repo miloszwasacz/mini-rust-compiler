@@ -5,6 +5,8 @@ use std::fmt;
 use debug_tree::TreeBuilder;
 
 use crate::ast::{ASTChildIterator, ASTNode};
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 pub use self::func::*;
@@ -50,6 +52,12 @@ impl ASTNode for ItemASTNode {
 
     fn add_to_tree_string(&self, builder: &mut TreeBuilder) {
         delegate_ast!(&self, add_to_tree_string, builder)
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, ()> for ItemASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        delegate_ast!(self, code_gen, state)
     }
 }
 

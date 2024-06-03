@@ -3,11 +3,14 @@
 use std::{fmt, iter};
 
 use debug_tree::TreeBuilder;
+use inkwell::values::AnyValueEnum;
 
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AsASTNode, AssigneeExprASTNode, BlockASTNode,
     ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
 };
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST node representing a while loop expression.
@@ -78,6 +81,12 @@ impl ExprASTNode for WhileASTNode {
 }
 
 impl ValueExprASTNode for WhileASTNode {}
+
+impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for WhileASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        todo!()
+    }
+}
 
 impl fmt::Display for WhileASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
