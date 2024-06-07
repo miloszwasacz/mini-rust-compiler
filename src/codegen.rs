@@ -2,29 +2,38 @@
 
 use inkwell::builder::Builder;
 use inkwell::context::Context;
-use inkwell::module::Module;
+use inkwell::module::{Linkage, Module};
+use inkwell::types::FunctionType;
+use inkwell::values::AnyValue;
+
+use crate::ast::{CrateASTNode, ExternItem, FuncProtoASTNode, ItemASTNode, StaticASTNode};
 
 use self::error::CodeGenError;
+use self::symbol_table::*;
 
 pub mod error;
+mod symbol_table;
 
 /// The state of the code generation process.
 pub struct CodeGenState<'ctx> {
     context: &'ctx Context,
     module: Module<'ctx>,
     builder: Builder<'ctx>,
+    symbol_table: SymbolTable<'ctx>,
 }
 
 impl<'ctx> CodeGenState<'ctx> {
-    /// Creates a new code generation state with the `module_name` and based on the given `context`.
+    /// Creates a new code generation state with the `module_name` based on the given `context`.
     pub fn new(context: &'ctx Context, module_name: &str) -> CodeGenState<'ctx> {
         let module = context.create_module(module_name);
         let builder = context.create_builder();
+        let symbol_table = SymbolTable::new();
 
         CodeGenState {
             context,
             module,
             builder,
+            symbol_table,
         }
     }
 
@@ -41,6 +50,11 @@ impl<'ctx> CodeGenState<'ctx> {
     /// Returns the builder that is being used to generate LLVM IR.
     pub fn builder(&mut self) -> &mut Builder<'ctx> {
         &mut self.builder
+    }
+
+    /// Returns the symbol table that is being used to store symbols.
+    pub fn symbol_table(&mut self) -> &mut SymbolTable<'ctx> {
+        &mut self.symbol_table
     }
 }
 
