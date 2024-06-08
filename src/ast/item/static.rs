@@ -58,6 +58,11 @@ impl StaticASTNode {
         &self.name
     }
 
+    /// Returns a shared strong reference to the name.
+    pub fn name_owned(&self) -> Rc<str> {
+        self.name.clone()
+    }
+
     /// Returns whether the item is mutable.
     pub fn is_mutable(&self) -> bool {
         self.mutable
@@ -80,8 +85,10 @@ impl ASTNode for StaticASTNode {
 }
 
 impl<'ctx> CodeGen<'ctx, ()> for StaticASTNode {
-    fn code_gen(&self, _state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        // Here we only generate the initializer, the declaration is done during Collection Phase.
         todo!()
+        //TODO Add support for more complicated initializers (evaluated at compile time)
     }
 }
 

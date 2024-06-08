@@ -26,6 +26,11 @@ impl CrateASTNode {
     pub fn name(&self) -> &str {
         &self.name
     }
+
+    /// Returns the items in the crate.
+    pub fn items(&self) -> &[ItemASTNode] {
+        &self.items
+    }
 }
 
 impl ASTNode for CrateASTNode {

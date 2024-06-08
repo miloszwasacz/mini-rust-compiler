@@ -37,6 +37,11 @@ use std::fmt;
 use std::fmt::Debug;
 
 use debug_tree::{TreeBuilder, TreeConfig, TreeSymbols};
+use inkwell::context::Context;
+use inkwell::module::Module;
+
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 
 pub use self::crt::*;
 pub use self::expr::*;
@@ -64,13 +69,29 @@ impl Crate {
     pub fn new(root: Box<CrateASTNode>) -> Crate {
         Crate { root }
     }
+
+    /// Generates the LLVM IR for this crate given the context.
+    pub fn code_gen<'ctx>(&self, context: &'ctx Context) -> codegen::Result<Module<'ctx>> {
+        let module_name = self.root.name();
+        let mut state = CodeGenState::new(context, module_name);
+
+        self.root.collect_symbols(&mut state)?;
+        self.root.code_gen(&mut state)?;
+
+        let module = state.take_module();
+        module.verify().map_err(|mess| todo!("Handle errors"))?;
+
+        Ok(module)
+    }
 }
 
 impl fmt::Display for Crate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut builder = TreeBuilder::new();
         builder.set_config_override(TreeConfig::new().symbols(TreeSymbols::with_rounded()));
+
         self.root.add_to_tree_string(&mut builder);
+
         write!(f, "{}", builder.string())
     }
 }

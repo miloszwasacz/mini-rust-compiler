@@ -37,6 +37,11 @@ impl ExternASTNode {
     pub fn abi(&self) -> &str {
         &self.abi
     }
+
+    /// Returns the items in the extern block.
+    pub fn items(&self) -> &[ExternItem] {
+        &self.items
+    }
 }
 
 impl ASTNode for ExternASTNode {
@@ -49,7 +54,7 @@ impl ASTNode for ExternASTNode {
 }
 
 impl<'ctx> CodeGen<'ctx, ()> for ExternASTNode {
-    fn code_gen(&self, _state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
         todo!()
     }
 }

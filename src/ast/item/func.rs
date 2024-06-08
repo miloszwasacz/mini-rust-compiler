@@ -28,6 +28,11 @@ impl FuncASTNode {
             span,
         }
     }
+
+    /// Returns the prototype of the function.
+    pub fn proto(&self) -> &FuncProtoASTNode {
+        &self.proto
+    }
 }
 
 impl ASTNode for FuncASTNode {

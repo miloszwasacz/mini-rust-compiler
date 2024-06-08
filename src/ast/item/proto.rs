@@ -3,6 +3,8 @@
 use std::fmt;
 use std::rc::Rc;
 
+use inkwell::types::FunctionType;
+
 use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AsASTNode, TypeASTMetaNode};
 use crate::codegen;
 use crate::codegen::{CodeGen, CodeGenState};
@@ -42,9 +44,14 @@ impl FuncProtoASTNode {
         &self.name
     }
 
-    /// Returns the return type.
-    pub fn return_type(&self) -> TypeASTMetaNode {
-        self.return_type
+    /// Returns a shared strong reference to the name.
+    pub fn name_owned(&self) -> Rc<str> {
+        self.name.clone()
+    }
+
+    /// Returns the return type meta-node.
+    pub fn return_type(&self) -> &TypeASTMetaNode {
+        &self.return_type
     }
 }
 
@@ -58,7 +65,13 @@ impl ASTNode for FuncProtoASTNode {
 }
 
 impl<'ctx> CodeGen<'ctx, ()> for FuncProtoASTNode {
-    fn code_gen(&self, _state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
+        CodeGen::<FunctionType>::code_gen(self, state).map(|_| ())
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, FunctionType<'ctx>> for FuncProtoASTNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<FunctionType<'ctx>> {
         todo!()
     }
 }

@@ -4,6 +4,10 @@
 use std::fmt;
 use std::str::FromStr;
 
+use inkwell::types::{AnyType, AnyTypeEnum, BasicType, BasicTypeEnum};
+
+use crate::codegen;
+use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
 /// An AST meta-node representing a type.
@@ -27,6 +31,30 @@ impl TypeASTMetaNode {
     /// Returns the span of this meta-node.
     pub fn span(&self) -> Span {
         self.span
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, AnyTypeEnum<'ctx>> for TypeASTMetaNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyTypeEnum<'ctx>> {
+        CodeGen::<BasicTypeEnum>::code_gen(self, state).map(|bt| bt.as_any_type_enum())
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, BasicTypeEnum<'ctx>> for TypeASTMetaNode {
+    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<BasicTypeEnum<'ctx>> {
+        let context = state.context();
+        Ok(match self.ty {
+            Type::I32 => context.i32_type().as_basic_type_enum(),
+            Type::F64 => context.f64_type().as_basic_type_enum(),
+            Type::Bool => context.bool_type().as_basic_type_enum(),
+            Type::Unit => context.struct_type(&[], false).as_basic_type_enum(),
+        })
+    }
+}
+
+impl fmt::Display for TypeASTMetaNode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(&self.ty, f)
     }
 }
 
@@ -55,12 +83,6 @@ impl fmt::Display for Type {
             Type::Bool => write!(f, "bool"),
             Type::Unit => write!(f, "()"),
         }
-    }
-}
-
-impl fmt::Display for TypeASTMetaNode {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(&self.ty, f)
     }
 }
 
