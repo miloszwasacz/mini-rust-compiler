@@ -1,6 +1,6 @@
 //! A concrete implementation of [LiteralASTNode] for unit.
 
-use inkwell::values::AnyValueEnum;
+use inkwell::values::{AnyValue, AnyValueEnum};
 
 use crate::ast::Type;
 use crate::codegen;
@@ -28,6 +28,8 @@ impl_ast! {
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for LiteralASTNode<()> {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        let unit_type = state.context().struct_type(&[], false);
+        let value = unit_type.const_zero();
+        Ok(value.as_any_value_enum())
     }
 }

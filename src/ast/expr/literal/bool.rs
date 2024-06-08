@@ -1,6 +1,6 @@
 //! A concrete implementation of [LiteralASTNode] for booleans.
 
-use inkwell::values::AnyValueEnum;
+use inkwell::values::{AnyValue, AnyValueEnum};
 
 use crate::ast::Type;
 use crate::codegen;
@@ -20,6 +20,8 @@ impl_ast!(bool);
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for LiteralASTNode<bool> {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        let bool_type = state.context().bool_type();
+        let value = bool_type.const_int(self.value as u64, false);
+        Ok(value.as_any_value_enum())
     }
 }

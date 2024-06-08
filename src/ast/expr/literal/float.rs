@@ -1,6 +1,6 @@
 //! A concrete implementation of [LiteralASTNode] for floating-point numbers.
 
-use inkwell::values::AnyValueEnum;
+use inkwell::values::{AnyValue, AnyValueEnum};
 
 use crate::ast::Type;
 use crate::codegen;
@@ -20,6 +20,8 @@ impl_ast!(f64);
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for LiteralASTNode<f64> {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        let f64_type = state.context().f64_type();
+        let value = f64_type.const_float(self.value);
+        Ok(value.as_any_value_enum())
     }
 }

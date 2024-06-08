@@ -121,8 +121,6 @@ impl FuncProtoASTNode {
     }
 }
 
-static A: () = ();
-
 impl StaticASTNode {
     /// Adds the static item declaration to the symbol table.
     fn add_to_symbol_table(&self, state: &mut CodeGenState, is_external: bool) -> Result<()> {

@@ -44,7 +44,10 @@ impl ASTNode for CrateASTNode {
 
 impl<'ctx> CodeGen<'ctx, ()> for CrateASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
-        todo!()
+        for item in &self.items {
+            item.code_gen(state)?;
+        }
+        Ok(())
     }
 }
 

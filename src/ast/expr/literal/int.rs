@@ -20,6 +20,8 @@ impl_ast!(i32);
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for LiteralASTNode<i32> {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        let i32_type = state.context().i32_type();
+        let value = i32_type.const_int(self.value as u64, true);
+        Ok(AnyValueEnum::IntValue(value))
     }
 }
