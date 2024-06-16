@@ -3,9 +3,9 @@
 use std::fmt;
 use std::rc::Rc;
 
-use inkwell::types::FunctionType;
+use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum, FunctionType};
 
-use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AsASTNode, TypeASTMetaNode};
+use crate::ast::{ast_defaults, ASTChildIterator, ASTNode, AsASTNode, Type, TypeASTMetaNode};
 use crate::codegen;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
@@ -53,6 +53,11 @@ impl FuncProtoASTNode {
     pub fn return_type(&self) -> &TypeASTMetaNode {
         &self.return_type
     }
+
+    /// Returns an iterator over the parameters.
+    pub fn get_param_iter(&self) -> impl Iterator<Item = &ParamASTNode> {
+        self.params.iter()
+    }
 }
 
 impl ASTNode for FuncProtoASTNode {
@@ -72,7 +77,17 @@ impl<'ctx> CodeGen<'ctx, ()> for FuncProtoASTNode {
 
 impl<'ctx> CodeGen<'ctx, FunctionType<'ctx>> for FuncProtoASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<FunctionType<'ctx>> {
-        todo!()
+        let params = self
+            .params
+            .iter()
+            .map(|p| CodeGen::<BasicMetadataTypeEnum>::code_gen(p, state))
+            .collect::<codegen::Result<Vec<_>>>()?;
+
+        Ok(match self.return_type.ty() {
+            Type::Unit => state.context().void_type().fn_type(&params, false),
+            _ => CodeGen::<BasicTypeEnum>::code_gen(&self.return_type, state)?
+                .fn_type(&params, false),
+        })
     }
 }
 

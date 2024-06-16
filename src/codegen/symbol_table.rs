@@ -51,7 +51,7 @@ impl<'ctx> SymbolTable<'ctx> {
     ///
     /// Assuming that the scopes form a stack and the current scope is at the top of the stack,
     /// this method iterates over the stack from top to bottom.
-    pub fn get(&self, name: &str) -> Option<&Symbol> {
+    pub fn get(&self, name: &str) -> Option<&Symbol<'ctx>> {
         self.symbol_stack
             .iter()
             .rev()
@@ -98,7 +98,7 @@ impl<'ctx> Symbol<'ctx> {
     }
 
     /// Returns the value of the symbol.
-    pub fn value(&self) -> &AnyValueEnum<'ctx> {
-        &self.value
+    pub fn value(&self) -> AnyValueEnum<'ctx> {
+        self.value
     }
 }

@@ -4,7 +4,7 @@
 use std::fmt;
 use std::str::FromStr;
 
-use inkwell::types::{AnyType, AnyTypeEnum, BasicType, BasicTypeEnum};
+use inkwell::types::{AnyType, AnyTypeEnum, BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
 
 use crate::codegen;
 use crate::codegen::{CodeGen, CodeGenState};
@@ -49,6 +49,15 @@ impl<'ctx> CodeGen<'ctx, BasicTypeEnum<'ctx>> for TypeASTMetaNode {
             Type::Bool => context.bool_type().as_basic_type_enum(),
             Type::Unit => context.struct_type(&[], false).as_basic_type_enum(),
         })
+    }
+}
+
+impl<'ctx> CodeGen<'ctx, BasicMetadataTypeEnum<'ctx>> for TypeASTMetaNode {
+    fn code_gen(
+        &self,
+        state: &mut CodeGenState<'ctx>,
+    ) -> codegen::Result<BasicMetadataTypeEnum<'ctx>> {
+        CodeGen::<BasicTypeEnum>::code_gen(self, state).map(|bt| bt.into())
     }
 }
 

@@ -1,5 +1,6 @@
 //! A module containing Path AST node implementation.
 
+use std::fmt;
 use std::rc::Rc;
 
 use inkwell::values::AnyValueEnum;
@@ -57,7 +58,11 @@ impl PlaceExprASTNode for PathASTNode {}
 
 impl ValueExprASTNode for PathASTNode {}
 
-impl AssigneeExprASTNode for PathASTNode {}
+impl AssigneeExprASTNode for PathASTNode {
+    fn pattern(&self) -> Option<Rc<str>> {
+        Some(self.path.clone())
+    }
+}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for PathASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
@@ -65,8 +70,8 @@ impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for PathASTNode {
     }
 }
 
-impl std::fmt::Display for PathASTNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for PathASTNode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Path {} \"{}\"", self.span, self.path)
     }
 }

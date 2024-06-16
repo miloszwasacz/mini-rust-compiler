@@ -41,6 +41,7 @@ use inkwell::context::Context;
 use inkwell::module::Module;
 
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 
 pub use self::crt::*;
@@ -79,7 +80,9 @@ impl Crate {
         self.root.code_gen(&mut state)?;
 
         let module = state.take_module();
-        module.verify().map_err(|mess| todo!("Handle errors"))?;
+        module
+            .verify()
+            .map_err(CodeGenError::ModuleVerificationFailed)?;
 
         Ok(module)
     }

@@ -1,5 +1,7 @@
 //! A module containing all the expression-related AST nodes.
 
+use std::rc::Rc;
+
 use inkwell::values::AnyValueEnum;
 
 use codegen::CodeGenState;
@@ -44,6 +46,7 @@ mod unsafe_block;
 /// # Example
 /// ```
 /// # use std::fmt;
+/// # use std::rc::Rc;
 /// # use mini_rust_compiler_components::token::Span;
 /// # use crate::mini_rust_compiler_components::ast::{
 /// #     ASTNode, ASTChildIterator, ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
@@ -73,7 +76,10 @@ mod unsafe_block;
 ///
 /// impl PlaceExprASTNode for MyExprASTNode {}
 ///
-/// impl AssigneeExprASTNode for MyExprASTNode {}
+/// impl AssigneeExprASTNode for MyExprASTNode {
+///     // ...
+/// # fn pattern(&self) -> Option<Rc<str>> { None }
+/// }
 ///
 /// # impl ASTNode for MyExprASTNode {
 /// #     fn span(&self) -> Span { unimplemented!() }
@@ -135,7 +141,11 @@ pub trait ValueExprASTNode: ExprASTNode {}
 ///
 /// It is very important to implement the conversion methods for [`ExprASTNode`] correctly -- if
 /// a type implements this trait, it should return `Some(self)` in the `try_as_assignee` method.
-pub trait AssigneeExprASTNode: ExprASTNode {}
+pub trait AssigneeExprASTNode: ExprASTNode {
+    //TODO Update the documentation when Patterns are implemented
+    /// Returns the name of the assigned variable.
+    fn pattern(&self) -> Option<Rc<str>>;
+}
 
 /// An auto-trait for converting a type to a reference to a [general expression](ExprASTNode) AST node.
 ///

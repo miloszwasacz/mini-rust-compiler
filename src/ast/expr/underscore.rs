@@ -1,6 +1,7 @@
 //! A module containing Underscore AST node implementation.
 
 use std::fmt;
+use std::rc::Rc;
 
 use inkwell::values::AnyValueEnum;
 
@@ -47,7 +48,11 @@ impl ExprASTNode for UnderscoreASTNode {
     }
 }
 
-impl AssigneeExprASTNode for UnderscoreASTNode {}
+impl AssigneeExprASTNode for UnderscoreASTNode {
+    fn pattern(&self) -> Option<Rc<str>> {
+        None
+    }
+}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for UnderscoreASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
