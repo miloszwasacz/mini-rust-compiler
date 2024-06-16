@@ -53,7 +53,7 @@ impl ValueExprASTNode for GroupedExprASTNode {}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for GroupedExprASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        CodeGen::<AnyValueEnum>::code_gen(self.expr.as_ref(), state)
     }
 }
 

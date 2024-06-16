@@ -113,10 +113,11 @@ impl FuncProtoASTNode {
 
         let fn_type = CodeGen::<FunctionType>::code_gen(self, state)?;
         let fn_value = state.module().add_function(&name, fn_type, None);
-
+        //TODO Handle redeclarations
         state
             .symbol_table()
             .insert(name, fn_value.as_any_value_enum());
+
         Ok(())
     }
 }
@@ -135,6 +136,7 @@ impl StaticASTNode {
         let stat = state.module().add_global(ty, None, &name);
         stat.set_linkage(linkage);
 
+        //TODO Handle redeclarations
         state.symbol_table().insert(name, stat.as_any_value_enum());
         Ok(())
     }

@@ -53,7 +53,7 @@ impl ValueExprASTNode for UnsafeBlockASTNode {}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for UnsafeBlockASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        CodeGen::<AnyValueEnum>::code_gen(self.block.as_ref(), state)
     }
 }
 
