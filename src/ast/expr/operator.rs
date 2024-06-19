@@ -42,11 +42,11 @@ mod macros {
                 #[derive(Debug)]
                 $( #[$doc] )*
                 pub struct $name {
-                    operator: $operator,
+                    pub(super) operator: $operator,
                     #[doc = "The left-hand side of the operator can be [any kind of expression](ExprASTNode)."]
-                    lhs: Box<dyn ExprASTNode>,
+                    pub(super) lhs: Box<dyn ExprASTNode>,
                     #[doc = "The right-hand side of the operator can be [any kind of expression](ExprASTNode)."]
-                    rhs: Box<dyn ExprASTNode>,
+                    pub(super) rhs: Box<dyn ExprASTNode>,
                     span: Span,
                 }
 

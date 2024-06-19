@@ -4,9 +4,12 @@
 use std::fmt;
 use std::str::FromStr;
 
+use inkwell::context::Context;
 use inkwell::types::{AnyType, AnyTypeEnum, BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
+use inkwell::values::AnyValueEnum;
 
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
@@ -105,6 +108,44 @@ impl FromStr for Type {
             "bool" => Ok(Type::Bool),
             "()" => Ok(Type::Unit),
             _ => Err(()),
+        }
+    }
+}
+
+impl Type {
+    /// Attempts to get the [`Type`] of an [`AnyValueEnum`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`CodeGenError::UnsupportedType`] if the type is not supported.
+    pub fn try_from_llvm_value<'ctx>(
+        context: &'ctx Context,
+        value: AnyValueEnum<'ctx>,
+        span: Span,
+    ) -> codegen::Result<Type> {
+        match value.get_type() {
+            // Bool
+            AnyTypeEnum::IntType(i) if i.get_bit_width() == 1 => Ok(Type::Bool),
+            // I32
+            AnyTypeEnum::IntType(i) if i.get_bit_width() == 32 => Ok(Type::I32),
+            // F64
+            AnyTypeEnum::FloatType(f) if f == context.f64_type() => Ok(Type::F64),
+            // Unit
+            AnyTypeEnum::StructType(s) if s.count_fields() == 0 => Ok(Type::Unit),
+            // Unsupported ints
+            AnyTypeEnum::IntType(_) => Err(CodeGenError::UnsupportedType {
+                message: "Unsupported int type. Only i32 is supported.".into(),
+                span,
+            }),
+            // Unsupported floats
+            AnyTypeEnum::FloatType(_) => Err(CodeGenError::UnsupportedType {
+                message: "Unsupported float type. Only f64 is supported.".into(),
+                span,
+            }),
+            ty => Err(CodeGenError::UnsupportedType {
+                message: format!("Unsupported type: {}", ty).into_boxed_str(),
+                span,
+            }),
         }
     }
 }

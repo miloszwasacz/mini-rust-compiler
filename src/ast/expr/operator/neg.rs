@@ -2,13 +2,14 @@
 
 use std::{fmt, iter};
 
-use inkwell::values::AnyValueEnum;
+use inkwell::values::{AnyValue, AnyValueEnum};
 
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
-    ValueExprASTNode,
+    Type, ValueExprASTNode,
 };
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
@@ -81,7 +82,41 @@ impl ValueExprASTNode for NegExprASTNode {}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for NegExprASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        //TODO Refactor to use traits
+        let expr = CodeGen::<AnyValueEnum>::code_gen(self.expr.as_ref(), state)?;
+
+        //TODO Split into HIR & MIR and run type checking on HIR->MIR
+        let expr_ty = Type::try_from_llvm_value(state.context(), expr, self.expr.span())?;
+
+        let builder = state.builder();
+        match self.operator {
+            NegOperator::Neg => match expr_ty {
+                Type::I32 => builder
+                    .build_int_neg(expr.into_int_value(), "neg")
+                    .map(|v| v.as_any_value_enum()),
+                Type::F64 => builder
+                    .build_float_neg(expr.into_float_value(), "neg")
+                    .map(|v| v.as_any_value_enum()),
+                _ => {
+                    return Err(CodeGenError::UnsupportedType {
+                        message: "Cannot perform numerical negation on non-numeric type.".into(),
+                        span: self.span,
+                    });
+                }
+            },
+            NegOperator::Not => match expr_ty {
+                Type::Bool => builder
+                    .build_not(expr.into_int_value(), "not")
+                    .map(|v| v.as_any_value_enum()),
+                _ => {
+                    return Err(CodeGenError::UnsupportedType {
+                        message: "Cannot perform logical negation on non-boolean type.".into(),
+                        span: self.span,
+                    });
+                }
+            },
+        }
+        .map_err(Into::<CodeGenError>::into)
     }
 }
 
