@@ -3,13 +3,15 @@
 use std::{fmt, iter};
 
 use debug_tree::TreeBuilder;
-use inkwell::values::AnyValueEnum;
+use inkwell::types::BasicTypeEnum;
+use inkwell::values::{AnyValue, AnyValueEnum, BasicValueEnum};
 
 use crate::ast::error::SemanticError;
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, StatementASTNode, Type, TypeASTMetaNode,
 };
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
@@ -120,10 +122,29 @@ impl<'ctx> CodeGen<'ctx, ()> for LetASTNode {
 
         //TODO Type checking (probably on HIR->MIR conversion)
 
-        if let (Some(pat), Some(value)) = (pat, value) {
+        if let Some(pat) = pat.as_ref() {
+            let ty = CodeGen::<BasicTypeEnum>::code_gen(&self.ty, state)?;
+            let ptr = state
+                .builder()
+                .build_alloca(ty, pat.as_ref())
+                .map_err(CodeGenError::from)?;
+
             //TODO Variable mutability?
-            state.symbol_table().insert(pat, value);
+            state
+                .symbol_table()
+                .insert(pat.clone(), ptr.as_any_value_enum());
+
+            if let Some(value) = value {
+                let value = BasicValueEnum::try_from(value).map_err(|_| {
+                    CodeGenError::InvalidLLVMValueType {
+                        message: "Return value must be a basic value".into(),
+                        span: self.value.as_ref().unwrap().span(),
+                    }
+                })?;
+                state.builder().build_store(ptr, value)?;
+            }
         }
+
         //TODO Unused value warning
 
         Ok(())

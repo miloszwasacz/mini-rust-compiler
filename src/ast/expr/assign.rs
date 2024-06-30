@@ -3,13 +3,15 @@
 use std::{fmt, iter};
 
 use debug_tree::TreeBuilder;
-use inkwell::values::AnyValueEnum;
+use inkwell::values::{AnyValueEnum, BasicValueEnum};
 
+use crate::ast::error::SemanticError;
 use crate::ast::{
-    ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
-    ValueExprASTNode,
+    ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, LiteralASTNode,
+    PlaceExprASTNode, ValueExprASTNode,
 };
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
@@ -85,7 +87,60 @@ impl ValueExprASTNode for AssignASTNode {}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for AssignASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        // Returns the result of the assignment, which is always a unit value.
+        let assignment_result = |state: &mut CodeGenState<'ctx>| {
+            let value = LiteralASTNode::<()>::new(self.value.span());
+            CodeGen::<AnyValueEnum>::code_gen(&value, state).unwrap()
+        };
+
+        let value = CodeGen::<AnyValueEnum>::code_gen(self.value.as_ref(), state)?;
+        let value =
+            BasicValueEnum::try_from(value).map_err(|_| CodeGenError::InvalidLLVMValueType {
+                message: "The RHS of the assignment must be a basic value".into(),
+                span: self.span,
+            })?;
+
+        let assignee = self
+            .assignee
+            .try_as_assignee()
+            .ok_or(SemanticError::WrongExpressionKind {
+                message: "Expected an assignee expression",
+                span: self.span,
+            })?
+            .pattern();
+
+        let pat = match assignee {
+            Some(pat) => pat,
+            None => return Ok(assignment_result(state)),
+        };
+        let ptr = state.symbol_table().get(pat.as_ref()).map_or_else(
+            || {
+                Err(CodeGenError::MissingSymbol {
+                    symbol: pat.to_string().into_boxed_str(),
+                    span: self.assignee.span(),
+                })
+            },
+            |s| match s.value() {
+                AnyValueEnum::PointerValue(p) => Ok(p),
+                _ => Err(CodeGenError::InvalidLLVMValueType {
+                    message: "Expected a pointer value".into(),
+                    span: self.assignee.span(),
+                }),
+            },
+        )?;
+
+        // If the value is a unit struct, we don't need to store it.
+        match value {
+            BasicValueEnum::StructValue(s) if s.count_fields() == 0 => {}
+            _ => {
+                state
+                    .builder()
+                    .build_store(ptr, value)
+                    .map_err(CodeGenError::from)?;
+            }
+        }
+
+        Ok(assignment_result(state))
     }
 }
 
