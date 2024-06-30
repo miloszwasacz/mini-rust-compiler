@@ -2,13 +2,14 @@
 
 use std::fmt;
 
-use inkwell::values::AnyValueEnum;
+use inkwell::values::{AnyValue, AnyValueEnum, BasicMetadataValueEnum};
 
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PathASTNode,
     PlaceExprASTNode, ValueExprASTNode,
 };
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
@@ -64,7 +65,43 @@ impl ValueExprASTNode for FunCallASTNode {}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for FunCallASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        let fn_value = state.symbol_table().get(self.path()).map_or_else(
+            || {
+                Err(CodeGenError::MissingSymbol {
+                    symbol: self.path().into(),
+                    span: self.span,
+                })
+            },
+            |s| match s.value() {
+                AnyValueEnum::FunctionValue(f) => Ok(f),
+                _ => Err(CodeGenError::InvalidLLVMValueType {
+                    message: format!("`{}` is not a function.", self.path()).into_boxed_str(),
+                    span: self.span,
+                }),
+            },
+        )?;
+
+        //TODO Validate passed arguments (probably on HIR->MIR conversion)
+        let args = self
+            .args
+            .iter()
+            .map(|arg| {
+                let arg = CodeGen::<AnyValueEnum>::code_gen(arg.as_ref(), state)?;
+                BasicMetadataValueEnum::try_from(arg).map_err(|_| {
+                    CodeGenError::InvalidLLVMValueType {
+                        message: "The expression is not a basic metadata value.".into(),
+                        span: self.span,
+                    }
+                })
+            })
+            .collect::<Result<Vec<BasicMetadataValueEnum>, _>>()?;
+
+        let call_name = format!("call_{}", self.path());
+        state
+            .builder()
+            .build_call(fn_value, &args, call_name.as_str())
+            .map(|v| v.as_any_value_enum())
+            .map_err(CodeGenError::from)
     }
 }
 

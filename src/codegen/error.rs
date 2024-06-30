@@ -12,6 +12,20 @@ use crate::token::Span;
 pub enum CodeGenError {
     /// A [`SemanticError`] encountered during code generation.
     SemanticError(SemanticError),
+    /// An error when a symbol that is not found in the symbol table is encountered.
+    MissingSymbol {
+        /// The name of the missing symbol.
+        symbol: Box<str>,
+        /// The span where the error occurred.
+        span: Span,
+    },
+    /// An error when an [LLVM value](inkwell::values::AnyValueEnum) is not of the expected type.
+    InvalidLLVMValueType {
+        /// The description of the error.
+        message: Box<str>,
+        /// The span where the error occurred.
+        span: Span,
+    },
     /// An error when an unsupported type is encountered.
     UnsupportedType {
         /// The description of the error.
