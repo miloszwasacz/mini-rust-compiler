@@ -102,7 +102,7 @@ impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for WhileASTNode {
 
         //#region Condition
         state.builder().position_at_end(cond_bb);
-        let cond = state.build_condition(self.condition.as_ref())?;
+        let cond = state.build_condition(self.condition.as_ref(), true)?;
         state
             .builder()
             .build_conditional_branch(cond, body_bb, end_bb)

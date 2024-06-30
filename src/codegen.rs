@@ -72,26 +72,46 @@ impl<'ctx> CodeGenState<'ctx> {
             .and_then(|bb| bb.get_parent())
     }
 
-    /// Generates LLVM IR for the given `cond` expression and a comparison (inequality)
-    /// with a constant zero, which is returned as an integer value.
-    pub fn build_condition(&mut self, cond: &dyn ExprASTNode) -> Result<IntValue<'ctx>> {
-        let value = CodeGen::<AnyValueEnum>::code_gen(cond, self)?;
-        let value = match value {
-            AnyValueEnum::IntValue(i) if i.get_type().get_bit_width() == 1 => i,
+    /// Runs [`CodeGen::<AnyValueEnum>::code_gen`] on the given `expr`,
+    /// checks if the result is a boolean value, and returns it.
+    ///
+    /// # Errors
+    ///
+    /// If the result is not a boolean value, [`CodeGenError::TypeMismatch`] is returned.
+    pub fn build_bool(&mut self, expr: &dyn ExprASTNode) -> Result<IntValue<'ctx>> {
+        CodeGen::<AnyValueEnum>::code_gen(expr, self).and_then(|value| match value {
+            AnyValueEnum::IntValue(i) if i.get_type().get_bit_width() == 1 => Ok(i),
             value => {
-                let span = cond.span();
+                let span = expr.span();
                 let ty = Type::try_from_llvm_value(self.context(), value, span)?;
-                return Err(CodeGenError::TypeMismatch {
+                Err(CodeGenError::TypeMismatch {
                     expected: Type::Bool,
                     actual: ty,
                     span,
-                });
+                })
             }
+        })
+    }
+
+    /// Generates LLVM IR for the given `cond` expression and a comparison with the `expected_result`.
+    /// The comparison is then returned as an integer value.
+    ///
+    /// The `cond` expression must be a boolean expression, see [`build_bool`](CodeGenState::build_bool).
+    pub fn build_condition(
+        &mut self,
+        cond: &dyn ExprASTNode,
+        expected_result: bool,
+    ) -> Result<IntValue<'ctx>> {
+        let cond = self.build_bool(cond)?;
+        let pred = if expected_result {
+            IntPredicate::NE
+        } else {
+            IntPredicate::EQ
         };
 
         let const_zero = self.context().bool_type().const_zero();
         self.builder()
-            .build_int_compare(IntPredicate::NE, value, const_zero, "cond")
+            .build_int_compare(pred, cond, const_zero, "cond")
             .map_err(CodeGenError::from)
     }
 }
