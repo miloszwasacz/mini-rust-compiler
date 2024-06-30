@@ -75,7 +75,7 @@ impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for FunCallASTNode {
             |s| match s.value() {
                 AnyValueEnum::FunctionValue(f) => Ok(f),
                 _ => Err(CodeGenError::InvalidLLVMValueType {
-                    message: format!("`{}` is not a function.", self.path()).into_boxed_str(),
+                    message: format!("`{}` is not a function", self.path()).into_boxed_str(),
                     span: self.span,
                 }),
             },
@@ -89,7 +89,7 @@ impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for FunCallASTNode {
                 let arg = CodeGen::<AnyValueEnum>::code_gen(arg.as_ref(), state)?;
                 BasicMetadataValueEnum::try_from(arg).map_err(|_| {
                     CodeGenError::InvalidLLVMValueType {
-                        message: "The expression is not a basic metadata value.".into(),
+                        message: "The expression is not a basic metadata value".into(),
                         span: self.span,
                     }
                 })

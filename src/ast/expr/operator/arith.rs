@@ -71,7 +71,7 @@ impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for ArithExprASTNode {
 
             if let (Type::Unit, _) | (_, Type::Unit) = (lhs_ty, rhs_ty) {
                 return Err(CodeGenError::UnsupportedType {
-                    message: "Cannot perform arithmetic operations on unit type.".into(),
+                    message: "Cannot perform arithmetic operations on unit type".into(),
                     span: self.span(),
                 });
             }
@@ -116,8 +116,7 @@ impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for ArithExprASTNode {
                 ArithOperator::Div => builder.build_float_div(lhs, rhs, "div"),
                 ArithOperator::Rem => builder.build_float_rem(lhs, rhs, "rem"),
                 ArithOperator::BitAnd | ArithOperator::BitOr | ArithOperator::BitXor => {
-                    let message =
-                        "Bitwise operations are not supported on floating point operands.";
+                    let message = "Bitwise operations are not supported on floating point operands";
                     return Err(CodeGenError::UnsupportedType {
                         message: message.into(),
                         span: self.span(),
@@ -140,7 +139,7 @@ impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for ArithExprASTNode {
                 | ArithOperator::Mul
                 | ArithOperator::Div
                 | ArithOperator::Rem => {
-                    let message = "Only bitwise operations are supported on boolean operands.";
+                    let message = "Only bitwise operations are supported on boolean operands";
                     return Err(CodeGenError::UnsupportedType {
                         message: message.into(),
                         span: self.span(),

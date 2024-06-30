@@ -134,12 +134,12 @@ impl Type {
             AnyTypeEnum::StructType(s) if s.count_fields() == 0 => Ok(Type::Unit),
             // Unsupported ints
             AnyTypeEnum::IntType(_) => Err(CodeGenError::UnsupportedType {
-                message: "Unsupported int type. Only i32 is supported.".into(),
+                message: "Unsupported int type (only `i32` is supported)".into(),
                 span,
             }),
             // Unsupported floats
             AnyTypeEnum::FloatType(_) => Err(CodeGenError::UnsupportedType {
-                message: "Unsupported float type. Only f64 is supported.".into(),
+                message: "Unsupported float type (only `f64` is supported)".into(),
                 span,
             }),
             ty => Err(CodeGenError::UnsupportedType {

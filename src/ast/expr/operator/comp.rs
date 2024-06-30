@@ -128,7 +128,7 @@ impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for CompExprASTNode {
             Type::Unit => {
                 //TODO Split into HIR & MIR and set this result as always true
                 return Err(CodeGenError::UnsupportedType {
-                    message: "Cannot perform comparison operations on unit type.".into(),
+                    message: "Cannot perform comparison operations on unit type".into(),
                     span: self.span(),
                 });
             }

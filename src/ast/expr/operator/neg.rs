@@ -99,7 +99,7 @@ impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for NegExprASTNode {
                     .map(|v| v.as_any_value_enum()),
                 _ => {
                     return Err(CodeGenError::UnsupportedType {
-                        message: "Cannot perform numerical negation on non-numeric type.".into(),
+                        message: "Cannot perform numerical negation on non-numeric type".into(),
                         span: self.span,
                     });
                 }
@@ -110,7 +110,7 @@ impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for NegExprASTNode {
                     .map(|v| v.as_any_value_enum()),
                 _ => {
                     return Err(CodeGenError::UnsupportedType {
-                        message: "Cannot perform logical negation on non-boolean type.".into(),
+                        message: "Cannot perform logical negation on non-boolean type".into(),
                         span: self.span,
                     });
                 }
