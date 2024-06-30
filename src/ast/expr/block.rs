@@ -79,7 +79,23 @@ impl ValueExprASTNode for BlockASTNode {}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for BlockASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        state.symbol_table().open_scope();
+
+        for statement in &self.statements {
+            statement.code_gen(state).map_err(|e| {
+                state.symbol_table().close_scope();
+                e
+            })?;
+        }
+
+        let ret_value = match &self.return_expr {
+            Some(expr) => CodeGen::<AnyValueEnum>::code_gen(expr.as_ref(), state),
+            None => Ok(state.build_unit_value(self.span.end())),
+        };
+
+        state.symbol_table().close_scope();
+
+        ret_value
     }
 }
 

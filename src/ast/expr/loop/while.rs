@@ -10,6 +10,7 @@ use crate::ast::{
     ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
 };
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
@@ -84,7 +85,42 @@ impl ValueExprASTNode for WhileASTNode {}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for WhileASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        //TODO Type checking -> loop has type `!` (unless it has a `break` statement)
+        let parent_fn = state
+            .get_current_function()
+            .unwrap_or_else(|| panic!("Statement outside of function"));
+
+        //#region Labels
+        let cond_bb = state.context().append_basic_block(parent_fn, "cond");
+        let body_bb = state.context().append_basic_block(parent_fn, "body");
+        let end_bb = state.context().append_basic_block(parent_fn, "end");
+        state
+            .builder()
+            .build_unconditional_branch(cond_bb)
+            .map_err(CodeGenError::from)?;
+        //#endregion
+
+        //#region Condition
+        state.builder().position_at_end(cond_bb);
+        let cond = state.build_condition(self.condition.as_ref())?;
+        state
+            .builder()
+            .build_conditional_branch(cond, body_bb, end_bb)
+            .map_err(CodeGenError::from)?;
+        //#endregion
+
+        //#region Body
+        state.builder().position_at_end(body_bb);
+        self.body.code_gen(state)?;
+        state
+            .builder()
+            .build_unconditional_branch(cond_bb)
+            .map_err(CodeGenError::from)?;
+        //#endregion
+
+        state.builder().position_at_end(end_bb);
+
+        Ok(state.build_unit_value(self.span.end()))
     }
 }
 

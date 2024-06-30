@@ -4,9 +4,12 @@ use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::module::{Linkage, Module};
 use inkwell::types::{BasicTypeEnum, FunctionType};
-use inkwell::values::AnyValue;
+use inkwell::values::{AnyValue, AnyValueEnum, FunctionValue, IntValue};
+use inkwell::IntPredicate;
 
-use crate::ast::{CrateASTNode, ExternItem, FuncProtoASTNode, ItemASTNode, StaticASTNode};
+use crate::ast::{
+    CrateASTNode, ExprASTNode, ExternItem, FuncProtoASTNode, ItemASTNode, StaticASTNode, Type,
+};
 
 use self::error::CodeGenError;
 use self::symbol_table::*;
@@ -60,6 +63,36 @@ impl<'ctx> CodeGenState<'ctx> {
     /// Returns the symbol table that is being used to store symbols.
     pub fn symbol_table(&mut self) -> &mut SymbolTable<'ctx> {
         &mut self.symbol_table
+    }
+
+    /// Returns the parent function of the basic block currently being used by the builder, if any.
+    pub fn get_current_function(&mut self) -> Option<FunctionValue<'ctx>> {
+        self.builder()
+            .get_insert_block()
+            .and_then(|bb| bb.get_parent())
+    }
+
+    /// Generates LLVM IR for the given `cond` expression and a comparison (inequality)
+    /// with a constant zero, which is returned as an integer value.
+    pub fn build_condition(&mut self, cond: &dyn ExprASTNode) -> Result<IntValue<'ctx>> {
+        let value = CodeGen::<AnyValueEnum>::code_gen(cond, self)?;
+        let value = match value {
+            AnyValueEnum::IntValue(i) if i.get_type().get_bit_width() == 1 => i,
+            value => {
+                let span = cond.span();
+                let ty = Type::try_from_llvm_value(self.context(), value, span)?;
+                return Err(CodeGenError::TypeMismatch {
+                    expected: Type::Bool,
+                    actual: ty,
+                    span,
+                });
+            }
+        };
+
+        let const_zero = self.context().bool_type().const_zero();
+        self.builder()
+            .build_int_compare(IntPredicate::NE, value, const_zero, "cond")
+            .map_err(CodeGenError::from)
     }
 }
 

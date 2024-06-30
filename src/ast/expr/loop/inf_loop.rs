@@ -9,6 +9,7 @@ use crate::ast::{
     ExprASTNode, PlaceExprASTNode, ValueExprASTNode,
 };
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
@@ -53,7 +54,29 @@ impl ValueExprASTNode for InfLoopASTNode {}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for InfLoopASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        //TODO Type checking -> loop has type `!` (unless it has a `break` statement)
+        let parent_fn = state
+            .get_current_function()
+            .unwrap_or_else(|| panic!("Statement outside of function"));
+
+        //#region Label
+        let start_bb = state.context().append_basic_block(parent_fn, "loop");
+        state
+            .builder()
+            .build_unconditional_branch(start_bb)
+            .map_err(CodeGenError::from)?;
+        //#endregion
+
+        //#region Body
+        state.builder().position_at_end(start_bb);
+        self.block.code_gen(state)?;
+        state
+            .builder()
+            .build_unconditional_branch(start_bb)
+            .map_err(CodeGenError::from)?;
+        //#endregion
+
+        Ok(state.build_unit_value(self.span.end()))
     }
 }
 
