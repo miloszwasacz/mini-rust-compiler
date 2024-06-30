@@ -10,6 +10,7 @@ use crate::ast::{
     ValueExprASTNode,
 };
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
@@ -55,8 +56,9 @@ impl AssigneeExprASTNode for UnderscoreASTNode {
 }
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for UnderscoreASTNode {
-    fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+    fn code_gen(&self, _: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
+        // Underscore cannot be used as a value; it should only be used as a pattern.
+        Err(CodeGenError::UnderscoreUsedAsValue { span: self.span })
     }
 }
 

@@ -26,6 +26,11 @@ pub enum CodeGenError {
         /// The span where the error occurred.
         span: Span,
     },
+    /// An error when an underscore is used as a value.
+    UnderscoreUsedAsValue {
+        /// The span where the error occurred.
+        span: Span,
+    },
     /// An error when an unsupported type is encountered.
     UnsupportedType {
         /// The description of the error.

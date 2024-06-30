@@ -2,13 +2,14 @@
 
 use std::{fmt, iter};
 
-use inkwell::values::AnyValueEnum;
+use inkwell::values::{AnyValue, AnyValueEnum, BasicValue, BasicValueEnum};
 
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, AssigneeExprASTNode, ExprASTNode, PlaceExprASTNode,
     ValueExprASTNode,
 };
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
@@ -66,7 +67,25 @@ impl ValueExprASTNode for ReturnASTNode {}
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for ReturnASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        let value = self
+            .value
+            .as_ref()
+            .map(|v| {
+                let v = CodeGen::<AnyValueEnum>::code_gen(v.as_ref(), state)?;
+                BasicValueEnum::try_from(v).map_err(|_| CodeGenError::InvalidLLVMValueType {
+                    message: "Return value must be a basic value".into(),
+                    span: self.span,
+                })
+            })
+            .transpose()?;
+
+        //TODO Type checking (probably on HIR->MIR conversion)
+        let value = value.as_ref().map(|v| v as &dyn BasicValue);
+        state
+            .builder()
+            .build_return(value)
+            .map(|v| v.as_any_value_enum())
+            .map_err(CodeGenError::from)
     }
 }
 
