@@ -3,7 +3,9 @@
 use std::{fmt, iter};
 
 use debug_tree::TreeBuilder;
+use inkwell::values::AnyValueEnum;
 
+use crate::ast::error::SemanticError;
 use crate::ast::{
     ast_defaults, ASTChildIterator, ASTNode, ExprASTNode, StatementASTNode, Type, TypeASTMetaNode,
 };
@@ -101,7 +103,30 @@ impl StatementASTNode for LetASTNode {}
 
 impl<'ctx> CodeGen<'ctx, ()> for LetASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<()> {
-        todo!()
+        let value = self
+            .value
+            .as_ref()
+            .map(|v| CodeGen::<AnyValueEnum>::code_gen(v.as_ref(), state))
+            .transpose()?;
+
+        let pat = self
+            .decl
+            .try_as_assignee()
+            .ok_or(SemanticError::WrongExpressionKind {
+                message: "Expected an assignee expression",
+                span: self.span,
+            })?
+            .pattern();
+
+        //TODO Type checking (probably on HIR->MIR conversion)
+
+        if let (Some(pat), Some(value)) = (pat, value) {
+            //TODO Variable mutability?
+            state.symbol_table().insert(pat, value);
+        }
+        //TODO Unused value warning
+
+        Ok(())
     }
 }
 

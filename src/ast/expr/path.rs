@@ -10,6 +10,7 @@ use crate::ast::{
     ValueExprASTNode,
 };
 use crate::codegen;
+use crate::codegen::error::CodeGenError;
 use crate::codegen::{CodeGen, CodeGenState};
 use crate::token::Span;
 
@@ -66,7 +67,14 @@ impl AssigneeExprASTNode for PathASTNode {
 
 impl<'ctx> CodeGen<'ctx, AnyValueEnum<'ctx>> for PathASTNode {
     fn code_gen(&self, state: &mut CodeGenState<'ctx>) -> codegen::Result<AnyValueEnum<'ctx>> {
-        todo!()
+        state
+            .symbol_table()
+            .get(self.path())
+            .ok_or_else(|| CodeGenError::MissingSymbol {
+                symbol: self.path().into(),
+                span: self.span,
+            })
+            .map(|s| s.value())
     }
 }
 
